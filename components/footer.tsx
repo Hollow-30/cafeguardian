@@ -1,0 +1,1 @@
+export function Footer() { return <footer className="border-t border-slate-200 py-6 text-center text-xs text-slate-500">Café Guardián — Plataforma Offline-First para Caficultores <span className="mx-1 text-slate-300">|</span> By Café Guardian</footer> }
