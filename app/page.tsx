@@ -10,8 +10,9 @@ import { OfflineSyncLogic } from "@/components/offline_sync_logic"
 
 const records: RecordItem[] = [
   { id: 1, zone: "Lote 3 — Alto Saposoa", type: "Diagnóstico por Imagen", status: "offline", time: "12 oct 2026 · hace 2 días", risk: "medium", description: "Hoja con síntomas iniciales de roya (confianza 82%). Incluye foto comprimida y recomendación de reinspección en 5 días." },
-  { id: 2, zone: "Parcela principal — El Dorado", type: "Alerta Climática", status: "synced", time: "14 oct 2026 · actualizado hoy", risk: "medium", description: "Humedad relativa alta y lluvias previstas. Revisa el follaje de las zonas bajas durante los próximos 3 días." },
+  { id: 2, zone: "Parcela Secundaria — El Dorado", type: "Alerta Climática", status: "synced", time: "14 oct 2026 · actualizado hoy", risk: "medium", description: "Humedad relativa alta y lluvias previstas. Revisa el follaje de las zonas bajas durante los próximos 3 días." },
   { id: 3, zone: "Lote 1 — Alto Saposoa", type: "Guía Informativa", status: "synced", time: "10 oct 2026 · SENASA / INIA", description: "Guía visual para reconocer señales tempranas de roya y registrar cambios en tus plantas." },
+  { id: 4, zone: "Lote 2 — Baja Saposoa", type: "Guía Informativa", status: "synced", time: "10 oct 2026 · SENASA / INIA", description: "Guía visual para reconocer señales tempranas de roya y registrar cambios en tus plantas." },
 ]
 
 export default function Page() {
