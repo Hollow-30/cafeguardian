@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import { useMemo, useState } from "react"
 import { Activity, Camera, CheckCircle2, Cloud, CloudOff, Leaf, RefreshCw, ShieldCheck, Sprout, Sun, Thermometer, WifiOff } from "lucide-react"
 import { SearchBar } from "@/components/search_bar"
