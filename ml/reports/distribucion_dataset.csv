@@ -1,0 +1,5 @@
+split,Roya,Sanas,Total
+train,350,350,700
+val,75,75,150
+test,75,75,150
+Total,500,500,1000

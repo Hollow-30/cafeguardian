@@ -1,0 +1,21 @@
+{
+    "dataset": "Coffee leaves - Saposoa",
+    "clases_incluidas": [
+        "Roya",
+        "Sanas"
+    ],
+    "clases_excluidas": [
+        "Ojo_Gallo"
+    ],
+    "total_imagenes": 1000,
+    "proporcion": {
+        "train": 0.7,
+        "val": 0.15,
+        "test": 0.15
+    },
+    "random_seed": 42,
+    "augmentation": {
+        "aplicada": false,
+        "nota": "No se ha aplicado aumento de datos."
+    }
+}
