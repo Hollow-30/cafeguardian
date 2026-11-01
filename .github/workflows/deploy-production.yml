@@ -14,6 +14,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
+  VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
   VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
@@ -22,6 +23,7 @@ jobs:
     name: Build and deploy production
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
+
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
@@ -37,25 +39,37 @@ jobs:
           version: 12.3.4
           run_install: false
 
-      - name: Install Vercel CLI
-        run: npm install --global vercel@latest
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
-      - name: Link Vercel project
-        run: vercel link --yes --project="$VERCEL_PROJECT_ID" --scope="$VERCEL_ORG_ID" --token="$VERCEL_TOKEN"
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      - name: Verify Vercel authentication
+        shell: bash
+        run: |
+          npx vercel@latest whoami --token="$VERCEL_TOKEN"
 
       - name: Pull Vercel project settings and production environment
-        run: vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        shell: bash
+        run: |
+          ARGS=(--yes --environment=production --token="$VERCEL_TOKEN" --project="$VERCEL_PROJECT_ID")
+          if [ -n "${VERCEL_ORG_ID:-}" ]; then
+            ARGS+=(--scope="$VERCEL_ORG_ID")
+          fi
+          npx vercel@latest pull "${ARGS[@]}"
 
       - name: Build for production
-        run: vercel build --prod --token="$VERCEL_TOKEN"
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        shell: bash
+        run: |
+          ARGS=(--prod --token="$VERCEL_TOKEN" --project="$VERCEL_PROJECT_ID")
+          if [ -n "${VERCEL_ORG_ID:-}" ]; then
+            ARGS+=(--scope="$VERCEL_ORG_ID")
+          fi
+          npx vercel@latest build "${ARGS[@]}"
 
       - name: Deploy production build
-        run: vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN"
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        shell: bash
+        run: |
+          ARGS=(--prebuilt --prod --yes --token="$VERCEL_TOKEN" --project="$VERCEL_PROJECT_ID")
+          if [ -n "${VERCEL_ORG_ID:-}" ]; then
+            ARGS+=(--scope="$VERCEL_ORG_ID")
+          fi
+          npx vercel@latest deploy "${ARGS[@]}"
