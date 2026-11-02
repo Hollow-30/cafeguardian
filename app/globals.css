@@ -161,3 +161,9 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer components {
+  .input {
+    @apply h-12 w-full rounded-2xl border border-slate-200 bg-[#fbfefc] px-4 text-sm text-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] outline-none transition placeholder:text-slate-400 hover:border-emerald-700/30 focus:border-emerald-600 focus:bg-white focus:ring-4 focus:ring-emerald-600/10;
+  }
+}
