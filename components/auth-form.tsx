@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation"
 import { FormEvent, useState } from "react"
 import { ArrowRight, Eye, EyeOff, Leaf, Loader2, Sprout } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
+import { postLoginPath, resolveRole } from "@/lib/auth/roles"
+import { publicSignupUserMetadata } from "@/lib/auth/superadmin-provision"
 
 type AuthMode = "login" | "register"
 
@@ -25,7 +27,14 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
     const supabase = createClient()
 
     const result = isRegister
-      ? await supabase.auth.signUp({ email, password, options: { data: { full_name: name }, emailRedirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL } })
+      ? await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: publicSignupUserMetadata(name),
+            emailRedirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL,
+          },
+        })
       : await supabase.auth.signInWithPassword({ email, password })
 
     if (result.error) {
@@ -40,7 +49,8 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
       return
     }
 
-    router.push("/")
+    const user = result.data.session?.user ?? result.data.user
+    router.push(postLoginPath(resolveRole(user)))
     router.refresh()
   }
 

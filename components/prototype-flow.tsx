@@ -1,7 +1,7 @@
 "use client"
 
 import { FormEvent, useMemo, useState } from "react"
-import { Check, ChevronLeft, Leaf, MapPin, Sprout, ShieldCheck, Eye, EyeOff, LogOut, Pencil, Navigation, Camera } from "lucide-react"
+import { ArrowRight, Camera, Check, ChevronLeft, Eye, EyeOff, Leaf, Lock, LogOut, Mail, MapPin, Navigation, Pencil, ShieldCheck, Sprout } from "lucide-react"
 
 type View = "login" | "register" | "privacy" | "location" | "dashboard"
 
@@ -71,10 +71,101 @@ function Shell({ children, eyebrow, title, description, onBack }: { children: Re
 
 function Auth({ view, profile, password, confirmation, showPassword, error, onProfile, onPassword, onConfirmation, onShowPassword, onSubmit, onRegister, onLogin }: any) {
   const register = view === "register"
-  return <Shell eyebrow={register ? "Comienza hoy" : "Bienvenido de nuevo"} title={register ? "Crea tu cuenta" : "Ingresa a tu panel"} description={register ? "Registra tu parcela y mantén tus cultivos protegidos." : "Continúa cuidando tu cafetal con información clara y oportuna."}><form onSubmit={onSubmit} className="flex flex-col gap-5">{register && <Field label="Nombre completo"><input required value={profile.name} onChange={(e) => onProfile({ ...profile, name: e.target.value })} placeholder="Tu nombre" className="input" /></Field>}<Field label="Correo electrónico"><input required type="email" value={profile.email} onChange={(e) => onProfile({ ...profile, email: e.target.value })} placeholder="tu-correo@ejemplo.com" className={`input ${profile.email && ( /\S+@\S+\.\S+/.test(profile.email) ? "border-emerald-500" : "border-red-400")}`} /></Field><Field label="Contraseña"><div className="relative"><input required minLength={6} type={showPassword ? "text" : "password"} value={password} onChange={(e) => onPassword(e.target.value)} placeholder="Mínimo 6 caracteres" className={`input w-full pr-12 ${password && (password.length >= 6 ? "border-emerald-500" : "border-red-400")}`} /><button type="button" onClick={onShowPassword} className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-slate-400" aria-label="Mostrar u ocultar contraseña">{showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}</button></div></Field>{register && <Field label="Confirmar contraseña"><input required type="password" value={confirmation} onChange={(e) => onConfirmation(e.target.value)} placeholder="Repite tu contraseña" className={`input ${confirmation && (password === confirmation ? "border-emerald-500" : "border-red-400")}`} /></Field>}{error && <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-800">{error}</p>}{register && <p className="rounded-xl bg-emerald-50 px-4 py-3 text-sm leading-5 text-emerald-900">Al registrarte obtienes el rol <strong>Caficultor</strong> y un <strong>plan de prueba de 30 días</strong>.</p>}<button type="submit" className="flex h-12 items-center justify-center gap-2 rounded-xl bg-emerald-800 px-5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-900">{register ? "Registrarse" : "Ingresar al panel"}</button></form><p className="mt-8 text-center text-sm text-slate-500">{register ? "¿Ya tienes una cuenta?" : "¿Aún no tienes una cuenta?"} <button type="button" onClick={register ? onLogin : onRegister} className="font-semibold text-emerald-800 hover:text-emerald-950">{register ? "Inicia sesión" : "Crear cuenta"}</button></p></Shell>
+  const emailState = profile.email ? (/\S+@\S+\.\S+/.test(profile.email) ? "border-emerald-500" : "border-red-400") : ""
+  const passwordState = password ? (password.length >= 6 ? "border-emerald-500" : "border-red-400") : ""
+  const confirmationState = confirmation ? (password === confirmation ? "border-emerald-500" : "border-red-400") : ""
+
+  return (
+    <Shell
+      eyebrow={register ? "Comienza hoy" : "Bienvenido de nuevo"}
+      title={register ? "Crea tu cuenta" : "Ingresa a tu panel"}
+      description={register ? "Registra tu parcela y mantén tus cultivos protegidos." : "Continúa cuidando tu cafetal con información clara y oportuna."}
+    >
+      <form
+        onSubmit={onSubmit}
+        className="flex flex-col gap-5 rounded-[28px] border border-emerald-950/8 bg-white p-5 shadow-[0_24px_60px_-32px_rgba(6,78,59,0.45)] sm:p-7"
+      >
+        {register && (
+          <Field label="Nombre completo">
+            <input required value={profile.name} onChange={(e) => onProfile({ ...profile, name: e.target.value })} placeholder="Tu nombre" className="input" />
+          </Field>
+        )}
+        <Field label="Correo electrónico">
+          <div className="relative">
+            <Mail className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-emerald-800/55" />
+            <input
+              required
+              type="email"
+              autoComplete="email"
+              value={profile.email}
+              onChange={(e) => onProfile({ ...profile, email: e.target.value })}
+              placeholder="tu-correo@ejemplo.com"
+              className={`input pl-11 ${emailState}`}
+            />
+          </div>
+        </Field>
+        <Field label="Contraseña">
+          <div className="relative">
+            <Lock className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-emerald-800/55" />
+            <input
+              required
+              minLength={6}
+              type={showPassword ? "text" : "password"}
+              autoComplete={register ? "new-password" : "current-password"}
+              value={password}
+              onChange={(e) => onPassword(e.target.value)}
+              placeholder="Mínimo 6 caracteres"
+              className={`input pl-11 pr-12 ${passwordState}`}
+            />
+            <button
+              type="button"
+              onClick={onShowPassword}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-xl p-2 text-slate-400 transition hover:bg-emerald-50 hover:text-emerald-800"
+              aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+            >
+              {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+            </button>
+          </div>
+        </Field>
+        {register && (
+          <Field label="Confirmar contraseña">
+            <input
+              required
+              type="password"
+              value={confirmation}
+              onChange={(e) => onConfirmation(e.target.value)}
+              placeholder="Repite tu contraseña"
+              className={`input ${confirmationState}`}
+            />
+          </Field>
+        )}
+        {error && <p role="alert" className="rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-800">{error}</p>}
+        {register && (
+          <p className="rounded-2xl bg-emerald-50 px-4 py-3 text-sm leading-5 text-emerald-900">
+            Al registrarte obtienes el rol <strong>Caficultor</strong> y un <strong>plan de prueba de 30 días</strong>.
+          </p>
+        )}
+        <button
+          type="submit"
+          className="mt-1 flex h-12 items-center justify-center gap-2 rounded-2xl bg-emerald-800 px-5 text-sm font-semibold text-white shadow-[0_12px_24px_-12px_rgba(6,78,59,0.9)] transition hover:bg-emerald-900"
+        >
+          {register ? "Registrarse" : "Ingresar al panel"}
+          <ArrowRight className="size-4" />
+        </button>
+      </form>
+      <p className="mt-6 text-center text-sm text-slate-500">
+        {register ? "¿Ya tienes una cuenta?" : "¿Aún no tienes una cuenta?"}{" "}
+        <button type="button" onClick={register ? onLogin : onRegister} className="font-semibold text-emerald-800 underline-offset-4 hover:text-emerald-950 hover:underline">
+          {register ? "Inicia sesión" : "Crear cuenta"}
+        </button>
+      </p>
+    </Shell>
+  )
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) { return <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">{label}{children}</label> }
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return <label className="flex flex-col gap-2 text-[13px] font-medium text-slate-600">{label}{children}</label>
+}
 
 function Privacy({ accepted, anonymous, acceptedAt, error, onAccepted, onAnonymous, onBack, onSubmit }: any) { return <Shell eyebrow="Paso 1 de 2" title="Tu privacidad primero" description="Antes de configurar tu parcela, revisa cómo cuidaremos la información que compartas." onBack={onBack}><form onSubmit={onSubmit} className="flex flex-col gap-5"><div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-5 text-sm leading-6 text-emerald-950"><ShieldCheck className="mb-3 size-6 text-emerald-700" /><p>Guardaremos tus fotos y datos generales de la zona para que la aplicación funcione y puedas consultar el historial de tu cafetal.</p></div><label className="flex gap-3 rounded-xl border border-slate-200 bg-white p-4 text-sm leading-5"><input type="checkbox" checked={accepted} onChange={(e) => onAccepted(e.target.checked)} className="mt-1 accent-emerald-700" />Acepto el uso de mis datos para el funcionamiento de la app.</label><label className="flex gap-3 rounded-xl border border-slate-200 bg-white p-4 text-sm leading-5"><input type="checkbox" checked={anonymous} onChange={(e) => onAnonymous(e.target.checked)} className="mt-1 accent-emerald-700" />Permito que mis fotos se usen de forma anónima para mejorar el modelo de detección.</label>{acceptedAt && <p className="text-xs text-slate-500">Aceptado el {acceptedAt}</p>}{error && <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-800">{error}</p>}<button type="submit" className="h-12 rounded-xl bg-emerald-800 text-sm font-semibold text-white hover:bg-emerald-900">Continuar con mi zona</button></form></Shell> }
 
