@@ -8,7 +8,9 @@
     "build": "next build",
     "start": "next start",
     "test": "vitest run",
-    "superadmin:create": "node --env-file=.env --experimental-strip-types scripts/create-superadmin.ts"
+    "superadmin:create": "node --env-file=.env --experimental-strip-types scripts/create-superadmin.ts",
+    "db:migrate": "node scripts/db-apply.mjs migrate",
+    "db:seed": "node scripts/db-apply.mjs seed"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",
