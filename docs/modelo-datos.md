@@ -20,7 +20,7 @@ auth.users
 |---|---|---|
 | `profiles` | Perfil de app ligado a Auth | `id`, `full_name`, `rol` |
 | `zonas` | Zona general de la finca (sin GPS exacto) | `distrito`, `centro_poblado`, `etiqueta`, `gps_aproximado` |
-| `fotos` | Observación fotográfica | `storage_path`, `consentimiento_anonimo`, `estado` |
+| `fotos` | Observación fotográfica en R2 + historial | `storage_path`, `content_type`, `byte_size`, `resultado_etiqueta`, `confianza`, `semaforo_dia`, `semaforo_fecha` |
 | `resultados` | Salida de diagnóstico o semáforo | `tipo`, `etiqueta`, `confianza`, `detalle` |
 | `planes` | Catálogo de planes | `codigo`, `nombre`, `dias_duracion` |
 | `suscripciones` | Plan activo del caficultor | `estado`, `inicia_en`, `termina_en` |
@@ -39,7 +39,17 @@ Orden:
 
 1. `supabase/migrations/20261102_controlled_superadmin_role.sql`
 2. `supabase/migrations/20261102_core_data_model.sql`
-3. `supabase/seed.sql` (datos ficticios)
+3. `supabase/migrations/20261102_fotos_historial_r2.sql`
+4. `supabase/seed.sql` (datos ficticios)
+
+## Fotos en Cloudflare R2
+
+- Bucket privado `cafeguardian`
+- Clave anónima: `fotos/{uuid}.jpg|png|webp` (sin email, nombre ni user id)
+- Límite: **10 MB**
+- API: `POST/GET/DELETE /api/fotos`, lectura binaria en `/api/fotos/[id]/archivo`
+- Solo dueño o Superadministrador
+- El historial guarda foto, fecha/hora, resultado, confianza, zona y semáforo del día
 
 ```bash
 psql "$POSTGRES_URL_NON_POOLING" -v ON_ERROR_STOP=1 -f supabase/migrations/20261102_controlled_superadmin_role.sql

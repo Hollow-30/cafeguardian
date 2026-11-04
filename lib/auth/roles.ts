@@ -6,6 +6,7 @@ export const ROLES = {
 export type Role = (typeof ROLES)[keyof typeof ROLES]
 
 export type AuthUserLike = {
+  id?: string
   app_metadata?: Record<string, unknown>
   user_metadata?: Record<string, unknown>
 } | null
