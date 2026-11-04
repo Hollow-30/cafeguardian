@@ -1,0 +1,22 @@
+export const photoCopy = {
+  eyebrow: "Registro de hoja",
+  title: "Sube una foto de tu hoja",
+  description: "La foto se guarda en tu teléfono y queda pendiente de análisis.",
+  camera: "Tomar foto",
+  gallery: "Elegir de galería",
+  previewTitle: "Revisa tu foto",
+  usePhoto: "Usar esta foto",
+  repeat: "Repetir",
+  processing: "Analizando hoja...",
+  loteLabel: "Lote o parcela (opcional)",
+  lotePlaceholder: "Ej. Lote 3 o La Esperanza",
+  tipsTitle: "Para una mejor foto",
+  tips: ["Una sola hoja", "De cerca", "Con luz natural"],
+  saved: "Foto guardada. Queda pendiente de análisis.",
+  errors: {
+    invalidType: "Elige una imagen JPG, PNG o WEBP.",
+    tooLarge: "La imagen pesa demasiado. El máximo es 10 MB.",
+    cameraPermission: "No se pudo acceder a la cámara. Puedes elegir una foto de tu galería.",
+    generic: "No pudimos leer la foto. Intenta nuevamente.",
+  },
+} as const

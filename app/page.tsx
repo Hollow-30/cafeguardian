@@ -1,7 +1,5 @@
-"use client"
-
-import { PrototypeFlow } from "@/components/prototype-flow"
+import { PhotoPicker } from "@/components/photo-picker"
 
 export default function Page() {
-  return <PrototypeFlow />
+  return <PhotoPicker />
 }
