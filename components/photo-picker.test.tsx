@@ -18,6 +18,7 @@ describe("PhotoPicker", () => {
     await user.upload(input, file)
     expect(screen.getByAltText("Previsualización de la hoja seleccionada")).toBeInTheDocument()
     await user.click(screen.getByRole("button", { name: "Usar esta foto" }))
-    await waitFor(() => expect(screen.getByText("Foto guardada. Queda pendiente de análisis.")).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByText("Resultado de demostración")).toBeInTheDocument())
+    expect(screen.getByText("Es un apoyo para decidir, no reemplaza a tu técnico")).toBeInTheDocument()
   })
 })
