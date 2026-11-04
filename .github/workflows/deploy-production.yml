@@ -80,8 +80,14 @@ jobs:
           out: reports
           args: >
             --failOnCVSS 7
-            --enableExperimental
+            --nodePackageSkipDevDependencies
             --nodeAuditSkipDevDependencies
+            --exclude "**/pnpm-lock.yaml"
+            --exclude "**/.git/**"
+            --exclude "**/docs/**"
+            --exclude "**/ml/**"
+            --exclude "**/node_modules/.pnpm/**/test/**"
+            --exclude "**/node_modules/.pnpm/**/tests/**"
 
       - name: Upload OWASP report
         if: always()
