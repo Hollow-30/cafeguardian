@@ -2,8 +2,9 @@
 
 import { FormEvent, useMemo, useState } from "react"
 import { ArrowRight, Camera, Check, ChevronLeft, Eye, EyeOff, Leaf, Lock, LogOut, Mail, MapPin, Navigation, Pencil, ShieldCheck, Sprout } from "lucide-react"
+import { PhotoPicker } from "@/components/photo-picker"
 
-type View = "login" | "register" | "privacy" | "location" | "dashboard"
+type View = "login" | "register" | "privacy" | "location" | "dashboard" | "photo"
 
 type Profile = { name: string; email: string; zone: string }
 
@@ -59,7 +60,8 @@ export function PrototypeFlow() {
     setProfile((current) => ({ ...current, zone })); setError(""); setView("dashboard")
   }
 
-  if (view === "dashboard") return <Dashboard profile={profile} onLogout={reset} onEditZone={() => setView("location")} />
+  if (view === "dashboard") return <Dashboard profile={profile} onLogout={reset} onEditZone={() => setView("location")} onRegisterPhoto={() => setView("photo")} />
+  if (view === "photo") return <PhotoPicker onBack={() => setView("dashboard")} />
   if (view === "privacy") return <Privacy acceptedAt={acceptedAt} accepted={privacyAccepted} anonymous={anonymousPhotos} error={error} onAccepted={setPrivacyAccepted} onAnonymous={setAnonymousPhotos} onBack={() => setView("register")} onSubmit={acceptPrivacy} />
   if (view === "location") return <Location district={district} center={center} gpsUsed={gpsUsed} error={error} onDistrict={setDistrict} onCenter={setCenter} onGps={() => { setGpsUsed(true); setError("") }} onBack={() => setView("privacy")} onSubmit={confirmZone} />
   return <Auth view={view} profile={profile} password={password} confirmation={confirmation} showPassword={showPassword} error={error} onProfile={setProfile} onPassword={setPassword} onConfirmation={setConfirmation} onShowPassword={() => setShowPassword(!showPassword)} onSubmit={view === "login" ? submitLogin : submitRegister} onRegister={() => { setError(""); setView("register") }} onLogin={() => { setError(""); setView("login") }} />
@@ -171,4 +173,68 @@ function Privacy({ accepted, anonymous, acceptedAt, error, onAccepted, onAnonymo
 
 function Location({ district, center, gpsUsed, error, onDistrict, onCenter, onGps, onBack, onSubmit }: any) { return <Shell eyebrow="Paso 2 de 2" title="¿Dónde está tu finca?" description="Configura una zona general para recibir información relevante de tu territorio." onBack={onBack}><form onSubmit={onSubmit} className="flex flex-col gap-5"><button type="button" onClick={onGps} className={`flex items-center justify-center gap-2 rounded-xl border-2 px-4 py-4 text-sm font-semibold ${gpsUsed ? "border-emerald-500 bg-emerald-50 text-emerald-800" : "border-emerald-700 text-emerald-800 hover:bg-emerald-50"}`}><Navigation className="size-4" />{gpsUsed ? "Ubicación actual seleccionada" : "Usar mi ubicación actual"}</button><div className="flex items-center gap-3 text-xs text-slate-400"><span className="h-px flex-1 bg-slate-200" />o elige manualmente<span className="h-px flex-1 bg-slate-200" /></div><Field label="Distrito"><select value={district} onChange={(e) => { onDistrict(e.target.value); }} className="input" disabled={gpsUsed}><option value="">Selecciona un distrito</option>{districts.map((item) => <option key={item}>{item}</option>)}</select></Field><Field label="Centro poblado"><select value={center} onChange={(e) => onCenter(e.target.value)} className="input" disabled={gpsUsed}><option value="">Selecciona un centro poblado</option>{centers.map((item) => <option key={item}>{item}</option>)}</select></Field><p className="rounded-xl bg-amber-50 px-4 py-3 text-xs leading-5 text-amber-900"><MapPin className="mr-1 inline size-3.5" />Solo se guardará la zona general, no la ubicación exacta.</p>{error && <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-800">{error}</p>}<button type="submit" className="h-12 rounded-xl bg-emerald-800 text-sm font-semibold text-white hover:bg-emerald-900">Confirmar zona</button></form></Shell> }
 
-function Dashboard({ profile, onLogout, onEditZone }: { profile: Profile; onLogout: () => void; onEditZone: () => void }) { return <main className="min-h-screen bg-[#f7faf8] text-slate-900"><header className="border-b border-emerald-950/10 bg-white"><div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4 sm:px-8"><div className="flex items-center gap-3"><div className="flex size-10 items-center justify-center rounded-xl bg-emerald-800 text-white"><Sprout className="size-5" /></div><div><p className="font-bold tracking-tight text-emerald-950">Café Guardián</p><p className="text-xs text-slate-500">Panel del Caficultor</p></div></div><button type="button" onClick={onLogout} className="flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-red-700"><LogOut className="size-4" />Cerrar sesión</button></div></header><div className="mx-auto max-w-6xl px-5 py-8 sm:px-8"><section className="rounded-3xl bg-emerald-950 px-6 py-8 text-white sm:px-10"><div className="flex items-start gap-4"><div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-800"><ShieldCheck className="size-6 text-emerald-300" /></div><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">Panel listo</p><h1 className="mt-2 text-3xl font-semibold">Hola, {profile.name || "caficultor"}.</h1><p className="mt-3 max-w-lg text-sm leading-6 text-emerald-100/75">Tu espacio está preparado para comenzar a registrar observaciones de tu cafetal.</p></div></div></section><div className="mt-8 grid gap-5 md:grid-cols-2"><section className="rounded-2xl border border-slate-200 bg-white p-6"><div className="flex items-start justify-between"><div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Zona de tu finca</p><h2 className="mt-2 text-lg font-semibold text-emerald-950">{profile.zone || "Sin zona configurada"}</h2></div><button type="button" onClick={onEditZone} className="flex items-center gap-1.5 text-sm font-semibold text-emerald-800"><Pencil className="size-3.5" />Editar zona</button></div><p className="mt-5 flex items-center gap-2 text-sm text-slate-500"><MapPin className="size-4 text-emerald-700" />Zona general protegida</p></section><section className="rounded-2xl border border-dashed border-slate-300 bg-white p-6"><div className="flex items-center gap-3"><div className="flex size-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700"><Camera className="size-5" /></div><div><h2 className="font-semibold text-emerald-950">Aún no hay diagnósticos</h2><p className="mt-1 text-sm text-slate-500">Cuando registres una observación, aparecerá aquí.</p></div></div></section></div></div></main> }
+function Dashboard({
+  profile,
+  onLogout,
+  onEditZone,
+  onRegisterPhoto,
+}: {
+  profile: Profile
+  onLogout: () => void
+  onEditZone: () => void
+  onRegisterPhoto: () => void
+}) {
+  return (
+    <main className="min-h-screen bg-[#f7faf8] text-slate-900">
+      <header className="border-b border-emerald-950/10 bg-white">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4 sm:px-8">
+          <div className="flex items-center gap-3">
+            <div className="flex size-10 items-center justify-center rounded-xl bg-emerald-800 text-white"><Sprout className="size-5" /></div>
+            <div><p className="font-bold tracking-tight text-emerald-950">Café Guardián</p><p className="text-xs text-slate-500">Panel del Caficultor</p></div>
+          </div>
+          <button type="button" onClick={onLogout} className="flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-red-700">
+            <LogOut className="size-4" />Cerrar sesión
+          </button>
+        </div>
+      </header>
+      <div className="mx-auto max-w-6xl px-5 py-8 sm:px-8">
+        <section className="rounded-3xl bg-emerald-950 px-6 py-8 text-white sm:px-10">
+          <div className="flex items-start gap-4">
+            <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-800"><ShieldCheck className="size-6 text-emerald-300" /></div>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">Panel listo</p>
+              <h1 className="mt-2 text-3xl font-semibold">Hola, {profile.name || "caficultor"}.</h1>
+              <p className="mt-3 max-w-lg text-sm leading-6 text-emerald-100/75">Tu espacio está preparado para comenzar a registrar observaciones de tu cafetal.</p>
+            </div>
+          </div>
+        </section>
+        <div className="mt-8 grid gap-5 md:grid-cols-2">
+          <section className="rounded-2xl border border-slate-200 bg-white p-6">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Zona de tu finca</p>
+                <h2 className="mt-2 text-lg font-semibold text-emerald-950">{profile.zone || "Sin zona configurada"}</h2>
+              </div>
+              <button type="button" onClick={onEditZone} className="flex items-center gap-1.5 text-sm font-semibold text-emerald-800">
+                <Pencil className="size-3.5" />Editar zona
+              </button>
+            </div>
+            <p className="mt-5 flex items-center gap-2 text-sm text-slate-500"><MapPin className="size-4 text-emerald-700" />Zona general protegida</p>
+          </section>
+          <section className="rounded-2xl border border-dashed border-slate-300 bg-white p-6">
+            <div className="flex items-center gap-3">
+              <div className="flex size-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700"><Camera className="size-5" /></div>
+              <div>
+                <h2 className="font-semibold text-emerald-950">Aún no hay diagnósticos</h2>
+                <p className="mt-1 text-sm text-slate-500">Cuando registres una observación, aparecerá aquí.</p>
+              </div>
+            </div>
+            <button type="button" onClick={onRegisterPhoto} className="mt-5 flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-emerald-800 px-4 text-sm font-semibold text-white hover:bg-emerald-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-800">
+              <Camera className="size-4" />Registrar foto de hoja
+            </button>
+          </section>
+        </div>
+      </div>
+    </main>
+  )
+}

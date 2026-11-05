@@ -8,10 +8,13 @@ export async function compressImage(file: Blob, maxSide = MAX_IMAGE_SIDE, qualit
   const canvas = document.createElement("canvas")
   canvas.width = width
   canvas.height = height
-  const context = canvas.getContext("2d")
-  if (!context) throw new Error("canvas-unavailable")
-  context.drawImage(bitmap, 0, 0, width, height)
-  bitmap.close()
+  try {
+    const context = canvas.getContext("2d")
+    if (!context) throw new Error("canvas-unavailable")
+    context.drawImage(bitmap, 0, 0, width, height)
+  } finally {
+    bitmap.close()
+  }
   return new Promise((resolve, reject) => {
     canvas.toBlob((result) => result ? resolve(result) : reject(new Error("compression-failed")), "image/jpeg", quality)
   })

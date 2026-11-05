@@ -1,5 +1,5 @@
-import { PhotoPicker } from "@/components/photo-picker"
+import { PrototypeFlow } from "@/components/prototype-flow"
 
 export default function Page() {
-  return <PhotoPicker />
+  return <PrototypeFlow />
 }
