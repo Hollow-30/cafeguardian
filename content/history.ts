@@ -1,0 +1,6 @@
+import type { DiagnosisKey } from "@/content/diagnosis"
+export const historyCopy = { title: "Historial de diagnósticos", description: "Revisa las fotos que guardaste en tu teléfono.", empty: "Aún no tienes diagnósticos", emptyAction: "Tomar una foto", all: "Todos", offline: "Guardado offline", synced: "Sincronizado", loading: "Cargando diagnósticos...", syncing: "Sincronizando datos del cafetal...", results: { healthy: "Sana", rust: "Roya", ojoDeGallo: "Ojo de gallo", inconclusive: "No concluyente" } } as const
+export const resultFilters: Array<{ key: "all" | DiagnosisKey; label: string }> = [{ key: "all", label: historyCopy.all }, ...Object.entries(historyCopy.results).map(([key, label]) => ({ key: key as DiagnosisKey, label }))]
+export function filterDiagnoses<T extends { label: DiagnosisKey }>(items: T[], filter: "all" | DiagnosisKey) { return filter === "all" ? items : items.filter((item) => item.label === filter) }
+export function sortDiagnoses<T extends { createdAt: string }>(items: T[]) { return [...items].sort((a, b) => b.createdAt.localeCompare(a.createdAt)) }
+export function paginateDiagnoses<T>(items: T[], page: number, pageSize = 10) { return items.slice(0, page * pageSize) }

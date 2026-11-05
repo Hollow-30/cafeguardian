@@ -1,6 +1,7 @@
 "use client"
 
 import { FormEvent, useMemo, useState } from "react"
+import Link from "next/link"
 import { ArrowRight, Camera, Check, ChevronLeft, Eye, EyeOff, Leaf, Lock, LogOut, Mail, MapPin, Navigation, Pencil, ShieldCheck, Sprout } from "lucide-react"
 import { PhotoPicker } from "@/components/photo-picker"
 
@@ -234,6 +235,17 @@ function Dashboard({
             </button>
           </section>
         </div>
+        <nav aria-label="Herramientas del caficultor" className="mt-5 grid gap-3 sm:grid-cols-3">
+          <Link href="/historial" className="rounded-xl border border-slate-200 bg-white p-4 text-sm font-semibold text-emerald-900 transition hover:border-emerald-700 hover:bg-emerald-50">
+            Historial de diagnósticos
+          </Link>
+          <Link href="/planes" className="rounded-xl border border-slate-200 bg-white p-4 text-sm font-semibold text-emerald-900 transition hover:border-emerald-700 hover:bg-emerald-50">
+            Planes y suscripción
+          </Link>
+          <Link href="/mis-pagos" className="rounded-xl border border-slate-200 bg-white p-4 text-sm font-semibold text-emerald-900 transition hover:border-emerald-700 hover:bg-emerald-50">
+            Mis pagos
+          </Link>
+        </nav>
       </div>
     </main>
   )

@@ -1,14 +1,18 @@
 "use client"
 
+import Link from "next/link"
 import { useEffect, useRef, useState } from "react"
 import { ArrowLeft, Camera, CheckCircle2, Image as ImageIcon, LoaderCircle, RotateCcw, Upload } from "lucide-react"
+import { DiagnosisResult } from "@/components/diagnosis-result"
+import { Button } from "@/components/ui/button"
 import { photoCopy } from "@/content/photos"
+import { classifyLeaf, type Classification } from "@/lib/diagnosis/classifyLeaf"
 import { compressImage } from "@/lib/image/compress"
 import { validatePhoto } from "@/lib/image/validate"
+import { saveDiagnosis } from "@/lib/storage/diagnosesRepo"
 import { savePhoto } from "@/lib/storage/photosRepo"
-import { Button } from "@/components/ui/button"
 
-type Step = "choose" | "preview" | "processing" | "saved"
+type Step = "choose" | "preview" | "processing" | "result" | "saved"
 type PhotoPickerProps = { onBack?: () => void; onSaved?: (id: string) => void }
 
 export function CaptureTips() {
@@ -86,8 +90,11 @@ export function PhotoPicker({ onBack, onSaved }: PhotoPickerProps) {
   const [step, setStep] = useState<Step>("choose")
   const [src, setSrc] = useState("")
   const [file, setFile] = useState<File | null>(null)
+  const [compressedBlob, setCompressedBlob] = useState<Blob | null>(null)
+  const [photoId, setPhotoId] = useState("")
   const [lote, setLote] = useState("")
   const [error, setError] = useState("")
+  const [classification, setClassification] = useState<Classification | null>(null)
 
   useEffect(() => () => {
     if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current)
@@ -103,6 +110,9 @@ export function PhotoPicker({ onBack, onSaved }: PhotoPickerProps) {
     clearPreview()
     setStep("choose")
     setFile(null)
+    setCompressedBlob(null)
+    setPhotoId("")
+    setClassification(null)
     setError("")
     if (cameraRef.current) cameraRef.current.value = ""
     if (galleryRef.current) galleryRef.current.value = ""
@@ -130,12 +140,34 @@ export function PhotoPicker({ onBack, onSaved }: PhotoPickerProps) {
     setStep("processing")
     try {
       const compressed = await compressImage(file)
+      const result = await classifyLeaf(compressed)
       const saved = await savePhoto({ blob: compressed, lote })
-      setStep("saved")
-      onSaved?.(saved.id)
+      setCompressedBlob(compressed)
+      setPhotoId(saved.id)
+      setClassification(result)
+      setStep("result")
     } catch (cause) {
-      console.error("No se pudo preparar o guardar la foto.", cause)
-      setStep("choose")
+      console.error("No se pudo preparar o clasificar la foto.", cause)
+      setStep("preview")
+      setError(photoCopy.errors.generic)
+    }
+  }
+
+  async function saveCurrentDiagnosis() {
+    if (!classification || !compressedBlob || !photoId) return
+    setError("")
+    try {
+      await saveDiagnosis({
+        photoId,
+        blob: compressedBlob,
+        label: classification.label,
+        confidence: classification.confidence,
+        lote: lote.trim(),
+      })
+      setStep("saved")
+      onSaved?.(photoId)
+    } catch (cause) {
+      console.error("No se pudo guardar el diagnóstico.", cause)
       setError(photoCopy.errors.generic)
     }
   }
@@ -151,8 +183,10 @@ export function PhotoPicker({ onBack, onSaved }: PhotoPickerProps) {
         )}
         <header>
           <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#B4693A]">{photoCopy.eyebrow}</p>
-          <h1 className="mt-2 text-3xl font-bold text-[#4A2E1E]">{photoCopy.title}</h1>
-          <p className="mt-3 text-base leading-6 text-slate-600">{photoCopy.description}</p>
+          <h1 className="mt-2 text-3xl font-bold text-[#4A2E1E]">{step === "result" ? "Resultado de la hoja" : photoCopy.title}</h1>
+          <p className="mt-3 text-base leading-6 text-slate-600">
+            {step === "result" ? "Revisa esta orientación antes de guardar el diagnóstico." : photoCopy.description}
+          </p>
         </header>
         {error && <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">{error}</div>}
         {step === "choose" && (
@@ -193,14 +227,29 @@ export function PhotoPicker({ onBack, onSaved }: PhotoPickerProps) {
         )}
         {step === "preview" && <PhotoPreview src={src} lote={lote} onLoteChange={setLote} onUse={usePhoto} onRepeat={reset} />}
         {step === "processing" && <ProcessingState />}
+        {step === "result" && classification && (
+          <DiagnosisResult
+            src={src}
+            label={classification.label}
+            confidence={classification.confidence}
+            isDemo={classification.isDemo}
+            onSave={saveCurrentDiagnosis}
+            onAnother={reset}
+          />
+        )}
         {step === "saved" && (
-          <div className="flex min-h-64 flex-col items-center justify-center gap-4 rounded-2xl border border-green-200 bg-green-50 p-6 text-center">
+          <section className="flex min-h-64 flex-col items-center justify-center gap-4 rounded-2xl border border-green-200 bg-green-50 p-6 text-center">
             <CheckCircle2 className="size-12 text-green-700" aria-hidden="true" />
-            <h2 className="text-xl font-semibold text-[#4A2E1E]">{photoCopy.saved}</h2>
-            <Button type="button" size="lg" onClick={reset} className="h-12 bg-[#4A2E1E] hover:bg-[#362116]">
-              Subir otra foto
-            </Button>
-          </div>
+            <h2 className="text-xl font-semibold text-[#4A2E1E]">Diagnóstico guardado en este dispositivo.</h2>
+            <div className="flex flex-wrap justify-center gap-3">
+              <Link href="/historial" className="inline-flex h-12 items-center justify-center rounded-xl bg-[#4A2E1E] px-5 font-semibold text-white hover:bg-[#362116]">
+                Ver historial
+              </Link>
+              <Button type="button" size="lg" variant="outline" onClick={reset} className="h-12 border-[#B4693A] text-[#4A2E1E]">
+                Subir otra foto
+              </Button>
+            </div>
+          </section>
         )}
       </div>
     </main>

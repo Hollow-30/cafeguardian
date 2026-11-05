@@ -13,6 +13,9 @@ describe("PrototypeFlow", () => {
     await user.type(screen.getByLabelText("Correo electrónico"), "caficultor@example.com")
     await user.type(screen.getByLabelText("Contraseña"), "secreto123")
     await user.click(screen.getByRole("button", { name: "Ingresar al panel" }))
+    expect(screen.getByRole("link", { name: "Historial de diagnósticos" })).toHaveAttribute("href", "/historial")
+    expect(screen.getByRole("link", { name: "Planes y suscripción" })).toHaveAttribute("href", "/planes")
+    expect(screen.getByRole("link", { name: "Mis pagos" })).toHaveAttribute("href", "/mis-pagos")
     await user.click(screen.getByRole("button", { name: "Registrar foto de hoja" }))
 
     expect(screen.getByRole("heading", { name: "Sube una foto de tu hoja" })).toBeInTheDocument()

@@ -7,7 +7,7 @@ export const photoCopy = {
   previewTitle: "Revisa tu foto",
   usePhoto: "Usar esta foto",
   repeat: "Repetir",
-  processing: "Preparando y guardando la foto...",
+  processing: "Analizando la hoja...",
   loteLabel: "Lote o parcela (opcional)",
   lotePlaceholder: "Ej. Lote 3 o La Esperanza",
   tipsTitle: "Para una mejor foto",
