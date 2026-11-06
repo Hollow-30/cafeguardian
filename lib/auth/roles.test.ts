@@ -2,9 +2,11 @@ import { describe, expect, it } from "vitest"
 import {
   ROLES,
   canAccessPanel,
+  isAuthenticatedFeaturePath,
   isPanelApiPath,
   isPanelPath,
   postLoginPath,
+  postLoginPathForRequest,
   resolveRole,
 } from "./roles"
 import {
@@ -69,6 +71,28 @@ describe("panel access", () => {
 
   it("keeps the Caficultor on the farmer home after login", () => {
     expect(postLoginPath("caficultor")).toBe("/")
+  })
+
+  it("allows local protected destinations after login", () => {
+    expect(postLoginPathForRequest("caficultor", "/historial")).toBe("/historial")
+    expect(postLoginPathForRequest("superadministrador", "/panel/equipo")).toBe("/panel/equipo")
+  })
+
+  it("rejects unsafe login destinations", () => {
+    expect(postLoginPathForRequest("caficultor", "//example.com")).toBe("/")
+    expect(postLoginPathForRequest("caficultor", "/\\example.com")).toBe("/")
+    expect(postLoginPathForRequest("caficultor", "/panel")).toBe("/")
+    expect(postLoginPathForRequest("caficultor", "/api/panel/resumen")).toBe("/")
+    expect(postLoginPathForRequest("superadministrador", "/registro")).toBe("/panel")
+  })
+
+  it("identifies feature routes that require a session", () => {
+    expect(isAuthenticatedFeaturePath("/diagnostico/nuevo")).toBe(true)
+    expect(isAuthenticatedFeaturePath("/historial/123")).toBe(true)
+    expect(isAuthenticatedFeaturePath("/planes/pagar")).toBe(true)
+    expect(isAuthenticatedFeaturePath("/mis-pagos")).toBe(true)
+    expect(isAuthenticatedFeaturePath("/login")).toBe(false)
+    expect(isAuthenticatedFeaturePath("/")).toBe(false)
   })
 
   it("rejects unauthenticated panel API calls", () => {

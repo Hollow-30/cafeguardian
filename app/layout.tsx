@@ -1,6 +1,8 @@
 import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
 import { AppNavigation } from '@/components/app-navigation'
+import { resolveRole } from '@/lib/auth/roles'
+import { getAuthUser } from '@/lib/auth/session'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -26,15 +28,17 @@ export const viewport: Viewport = {
   themeColor: '#f7faf8',
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const user = await getAuthUser()
+
   return (
     <html lang="es">
       <body className="antialiased">
-        <AppNavigation />
+        <AppNavigation role={user ? resolveRole(user) : null} />
         {children}
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>

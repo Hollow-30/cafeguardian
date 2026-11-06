@@ -2,7 +2,8 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Camera, CreditCard, Leaf, ListChecks, LogIn, ShieldCheck, UserPlus, Wallet } from "lucide-react"
+import { Camera, CreditCard, Leaf, ListChecks, ShieldCheck, Wallet } from "lucide-react"
+import type { Role } from "@/lib/auth/roles"
 
 const links = [
   { href: "/", label: "Inicio", icon: Leaf },
@@ -10,13 +11,13 @@ const links = [
   { href: "/historial", label: "Historial", icon: ListChecks },
   { href: "/planes", label: "Planes", icon: CreditCard },
   { href: "/mis-pagos", label: "Mis pagos", icon: Wallet },
-  { href: "/login", label: "Ingresar", icon: LogIn },
-  { href: "/registro", label: "Crear cuenta", icon: UserPlus },
   { href: "/panel", label: "Panel del equipo", icon: ShieldCheck },
 ]
 
-export function AppNavigation() {
+export function AppNavigation({ role }: { role: Role | null }) {
   const pathname = usePathname()
+
+  if (!role) return null
 
   return (
     <header className="border-b border-emerald-900/10 bg-white">
@@ -24,7 +25,7 @@ export function AppNavigation() {
         aria-label="Navegación principal"
         className="mx-auto flex max-w-6xl flex-wrap items-center gap-2 px-4 py-3 sm:px-6"
       >
-        {links.map(({ href, label, icon: Icon }) => {
+        {links.filter(({ href }) => href !== "/panel" || role === "superadministrador").map(({ href, label, icon: Icon }) => {
           const active = href === "/" ? pathname === href : pathname === href || pathname.startsWith(`${href}/`)
 
           return (

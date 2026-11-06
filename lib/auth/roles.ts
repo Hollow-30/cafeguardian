@@ -34,3 +34,39 @@ export function isPanelPath(pathname: string): boolean {
 export function isPanelApiPath(pathname: string): boolean {
   return pathname === "/api/panel" || pathname.startsWith("/api/panel/")
 }
+
+export function isAuthenticatedFeaturePath(pathname: string): boolean {
+  return (
+    pathname === "/diagnostico" ||
+    pathname.startsWith("/diagnostico/") ||
+    pathname === "/historial" ||
+    pathname.startsWith("/historial/") ||
+    pathname === "/planes" ||
+    pathname.startsWith("/planes/") ||
+    pathname === "/mis-pagos"
+  )
+}
+
+export function postLoginPathForRequest(role: Role, requestedPath: string | null): string {
+  if (!requestedPath) return postLoginPath(role)
+
+  let destination: URL
+  try {
+    destination = new URL(requestedPath, "https://cafeguardian.invalid")
+  } catch {
+    return postLoginPath(role)
+  }
+
+  if (destination.origin !== "https://cafeguardian.invalid") return postLoginPath(role)
+
+  const { pathname, search, hash } = destination
+  if (
+    pathname === "/login" ||
+    pathname === "/registro" ||
+    (role !== ROLES.SUPERADMINISTRADOR && (isPanelPath(pathname) || isPanelApiPath(pathname)))
+  ) {
+    return postLoginPath(role)
+  }
+
+  return `${pathname}${search}${hash}`
+}

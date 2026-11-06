@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { FormEvent, useState } from "react"
 import { ArrowRight, Eye, EyeOff, Leaf, Loader2, Sprout } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
-import { postLoginPath, resolveRole } from "@/lib/auth/roles"
+import { postLoginPathForRequest, resolveRole } from "@/lib/auth/roles"
 import { publicSignupUserMetadata } from "@/lib/auth/superadmin-provision"
 
 type AuthMode = "login" | "register"
@@ -50,7 +50,8 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
     }
 
     const user = result.data.session?.user ?? result.data.user
-    router.push(postLoginPath(resolveRole(user)))
+    const requestedPath = new URLSearchParams(window.location.search).get("next")
+    router.push(postLoginPathForRequest(resolveRole(user), requestedPath))
     router.refresh()
   }
 
