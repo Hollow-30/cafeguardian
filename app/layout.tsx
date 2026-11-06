@@ -1,5 +1,6 @@
 import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
+import { AppNavigation } from '@/components/app-navigation'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -10,11 +11,6 @@ export const metadata: Metadata = {
     icon: [
       {
         url: '/icon-light-32x32.png',
-        media: '(prefers-color-scheme: light)',
-      },
-      {
-        url: '/icon-dark-32x32.png',
-        media: '(prefers-color-scheme: dark)',
       },
       {
         url: '/icon.svg',
@@ -26,11 +22,8 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  colorScheme: 'light dark',
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: 'white' },
-    { media: '(prefers-color-scheme: dark)', color: 'black' },
-  ],
+  colorScheme: 'light',
+  themeColor: '#f7faf8',
 }
 
 export default function RootLayout({
@@ -41,6 +34,7 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body className="antialiased">
+        <AppNavigation />
         {children}
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>

@@ -17,12 +17,12 @@ type PhotoPickerProps = { onBack?: () => void; onSaved?: (id: string) => void }
 
 export function CaptureTips() {
   return (
-    <section aria-labelledby="tips-title" className="rounded-2xl bg-[#fff8f2] p-5">
-      <h2 id="tips-title" className="text-sm font-semibold text-[#4A2E1E]">{photoCopy.tipsTitle}</h2>
-      <ul className="mt-3 grid gap-2 text-sm text-[#6b5142] sm:grid-cols-3">
+    <section aria-labelledby="tips-title" className="rounded-2xl bg-emerald-50 p-5">
+      <h2 id="tips-title" className="text-sm font-semibold text-emerald-950">{photoCopy.tipsTitle}</h2>
+      <ul className="mt-3 grid gap-2 text-sm text-emerald-900/80 sm:grid-cols-3">
         {photoCopy.tips.map((tip) => (
           <li key={tip} className="flex items-center gap-2">
-            <CheckCircle2 className="size-4 text-[#B4693A]" aria-hidden="true" />
+            <CheckCircle2 className="size-4 text-emerald-700" aria-hidden="true" />
             {tip}
           </li>
         ))}
@@ -34,8 +34,8 @@ export function CaptureTips() {
 export function ProcessingState() {
   return (
     <div role="status" aria-live="polite" className="flex min-h-64 flex-col items-center justify-center gap-4 text-center">
-      <LoaderCircle className="size-12 animate-spin text-[#B4693A]" aria-hidden="true" />
-      <h2 className="text-xl font-semibold text-[#4A2E1E]">{photoCopy.processing}</h2>
+      <LoaderCircle className="size-12 animate-spin text-emerald-700" aria-hidden="true" />
+      <h2 className="text-xl font-semibold text-emerald-950">{photoCopy.processing}</h2>
       <p className="text-sm text-slate-600">La foto permanece en tu teléfono.</p>
     </div>
   )
@@ -56,25 +56,25 @@ export function PhotoPreview({
 }) {
   return (
     <div className="flex flex-col gap-5">
-      <div className="overflow-hidden rounded-2xl border border-[#eadfd7] bg-[#f8f5f2]">
+      <div className="overflow-hidden rounded-2xl border border-emerald-100 bg-emerald-50">
         <img src={src} alt="Previsualización de la hoja seleccionada" className="mx-auto max-h-[360px] w-full object-contain" />
       </div>
-      <label className="flex flex-col gap-2 text-sm font-semibold text-[#4A2E1E]" htmlFor="lote">
+      <label className="flex flex-col gap-2 text-sm font-semibold text-emerald-950" htmlFor="lote">
         {photoCopy.loteLabel}
         <input
           id="lote"
           value={lote}
           onChange={(event) => onLoteChange(event.target.value)}
           placeholder={photoCopy.lotePlaceholder}
-          className="h-12 rounded-xl border border-slate-300 px-4 font-normal outline-none focus:border-[#B4693A] focus:ring-4 focus:ring-[#B4693A]/20"
+          className="h-12 rounded-xl border border-slate-300 px-4 font-normal outline-none focus:border-emerald-700 focus:ring-4 focus:ring-emerald-700/20"
         />
       </label>
       <div className="grid gap-3 sm:grid-cols-2">
-        <Button type="button" size="lg" onClick={onUse} className="h-12 bg-[#4A2E1E] hover:bg-[#362116]">
+        <Button type="button" size="lg" onClick={onUse} className="h-12 bg-emerald-800 hover:bg-emerald-900">
           <Upload data-icon="inline-start" />
           {photoCopy.usePhoto}
         </Button>
-        <Button type="button" size="lg" variant="outline" onClick={onRepeat} className="h-12 border-[#B4693A] text-[#4A2E1E]">
+        <Button type="button" size="lg" variant="outline" onClick={onRepeat} className="h-12 border-emerald-700 text-emerald-900">
           <RotateCcw data-icon="inline-start" />
           {photoCopy.repeat}
         </Button>
@@ -182,8 +182,8 @@ export function PhotoPicker({ onBack, onSaved }: PhotoPickerProps) {
           </Button>
         )}
         <header>
-          <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#B4693A]">{photoCopy.eyebrow}</p>
-          <h1 className="mt-2 text-3xl font-bold text-[#4A2E1E]">{step === "result" ? "Resultado de la hoja" : photoCopy.title}</h1>
+          <p className="text-sm font-semibold uppercase tracking-[0.16em] text-emerald-700">{photoCopy.eyebrow}</p>
+          <h1 className="mt-2 text-3xl font-bold text-emerald-950">{step === "result" ? "Resultado de la hoja" : photoCopy.title}</h1>
           <p className="mt-3 text-base leading-6 text-slate-600">
             {step === "result" ? "Revisa esta orientación antes de guardar el diagnóstico." : photoCopy.description}
           </p>
@@ -192,11 +192,11 @@ export function PhotoPicker({ onBack, onSaved }: PhotoPickerProps) {
         {step === "choose" && (
           <>
             <div className="grid gap-4">
-              <Button type="button" size="lg" onClick={() => cameraRef.current?.click()} className="h-16 justify-start gap-4 bg-[#4A2E1E] px-5 text-lg hover:bg-[#362116]">
+              <Button type="button" size="lg" onClick={() => cameraRef.current?.click()} className="h-16 justify-start gap-4 bg-emerald-800 px-5 text-lg hover:bg-emerald-900">
                 <Camera data-icon="inline-start" />
                 {photoCopy.camera}
               </Button>
-              <Button type="button" size="lg" variant="outline" onClick={() => galleryRef.current?.click()} className="h-16 justify-start gap-4 border-2 border-[#B4693A] px-5 text-lg text-[#4A2E1E] hover:bg-[#fff8f2]">
+              <Button type="button" size="lg" variant="outline" onClick={() => galleryRef.current?.click()} className="h-16 justify-start gap-4 border-2 border-emerald-700 px-5 text-lg text-emerald-950 hover:bg-emerald-50">
                 <ImageIcon data-icon="inline-start" />
                 {photoCopy.gallery}
               </Button>
@@ -240,12 +240,12 @@ export function PhotoPicker({ onBack, onSaved }: PhotoPickerProps) {
         {step === "saved" && (
           <section className="flex min-h-64 flex-col items-center justify-center gap-4 rounded-2xl border border-green-200 bg-green-50 p-6 text-center">
             <CheckCircle2 className="size-12 text-green-700" aria-hidden="true" />
-            <h2 className="text-xl font-semibold text-[#4A2E1E]">Diagnóstico guardado en este dispositivo.</h2>
+            <h2 className="text-xl font-semibold text-emerald-950">Diagnóstico guardado en este dispositivo.</h2>
             <div className="flex flex-wrap justify-center gap-3">
-              <Link href="/historial" className="inline-flex h-12 items-center justify-center rounded-xl bg-[#4A2E1E] px-5 font-semibold text-white hover:bg-[#362116]">
+              <Link href="/historial" className="inline-flex h-12 items-center justify-center rounded-xl bg-emerald-800 px-5 font-semibold text-white hover:bg-emerald-900">
                 Ver historial
               </Link>
-              <Button type="button" size="lg" variant="outline" onClick={reset} className="h-12 border-[#B4693A] text-[#4A2E1E]">
+              <Button type="button" size="lg" variant="outline" onClick={reset} className="h-12 border-emerald-700 text-emerald-900">
                 Subir otra foto
               </Button>
             </div>
