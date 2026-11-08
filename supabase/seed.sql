@@ -222,3 +222,36 @@ values
     '{"plan":"prueba_30","origen":"seed"}'::jsonb
   )
 on conflict (id) do nothing;
+
+-- Catálogo de zonas con coordenadas para el clima (CAFG-159).
+-- Son zonas geográficas públicas, no fincas ni productores reales.
+-- Solo Saposoa tiene la coordenada verificada en un mapa. Las demás usan provisionalmente
+-- esa misma coordenada y quedan con coordenada_verificada = false hasta validarlas.
+-- Para probar otros lugares (por ejemplo cerca de Lima) se usa scripts/semaforo/clima-saposoa.mjs
+-- con --lat y --lon; no se agregan zonas de prueba a este seed.
+-- Repetir el seed es seguro: actualiza las filas aún no verificadas en la base (incluidos
+-- coordenada_verificada y activo) y nunca pisa una que ya esté verificada.
+-- Las filas con activo = false (El Dorado, San Martín y los tres centros poblados) no se usan
+-- hasta verificar su coordenada en un mapa; para activarlas de forma estable, cambia la fila
+-- aquí a coordenada_verificada = true y activo = true, y repite el seed (si solo se activa a
+-- mano en la base, el seed la vuelve a dejar inactiva).
+-- Una fila ya verificada no se modifica desde el seed; para corregirla se usa un update o una
+-- migración nueva.
+insert into public.zonas_clima (nombre, distrito, centro_poblado, latitud, longitud, coordenada_verificada, activo)
+values
+  ('Saposoa', 'Saposoa', null, -6.935035721896322, -76.77095139528569, true, true),
+  ('Alto Saposoa', 'Alto Saposoa', null, -6.935035721896322, -76.77095139528569, false, true), -- provisional
+  ('Baja Saposoa', 'Baja Saposoa', null, -6.935035721896322, -76.77095139528569, false, true), -- provisional
+  ('El Dorado', 'El Dorado', null, -6.935035721896322, -76.77095139528569, false, false), -- provisional
+  ('San Martín', 'San Martín', null, -6.935035721896322, -76.77095139528569, false, false), -- provisional
+  ('Centro Poblado Nuevo Progreso', null, 'Centro Poblado Nuevo Progreso', -6.935035721896322, -76.77095139528569, false, false), -- provisional
+  ('Centro Poblado Santa Rosa', null, 'Centro Poblado Santa Rosa', -6.935035721896322, -76.77095139528569, false, false), -- provisional
+  ('Centro Poblado El Porvenir', null, 'Centro Poblado El Porvenir', -6.935035721896322, -76.77095139528569, false, false) -- provisional
+on conflict (nombre) do update
+set distrito = excluded.distrito,
+    centro_poblado = excluded.centro_poblado,
+    latitud = excluded.latitud,
+    longitud = excluded.longitud,
+    coordenada_verificada = excluded.coordenada_verificada,
+    activo = excluded.activo
+where zonas_clima.coordenada_verificada = false;

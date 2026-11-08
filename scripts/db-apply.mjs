@@ -22,6 +22,7 @@ const files =
           "supabase/migrations/20261102_controlled_superadmin_role.sql",
           "supabase/migrations/20261102_core_data_model.sql",
           "supabase/migrations/20261102_fotos_historial_r2.sql",
+          "supabase/migrations/20261107_zonas_clima.sql",
         ]
       : null
 
