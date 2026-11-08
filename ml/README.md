@@ -22,7 +22,14 @@ La preparación de los datos debe garantizar:
 * Documentación de la distribución por clase.
 * Atribución y cumplimiento de la licencia del conjunto utilizado.
 
-## Entorno de desarrollo
+## CAFG-107: servicio de predicción
+
+El servicio CPU en `service/` expone el checkpoint verificado mediante FastAPI.
+La app lo consume a través de una ruta Next autenticada y ya no usa el simulador
+por defecto. Instalación, contrato HTTP, errores, medición, contenedor y pruebas:
+[`docs/servicio-prediccion.md`](../docs/servicio-prediccion.md).
+
+## Entorno de experimentación
 
 La experimentación y el entrenamiento podrán ejecutarse en Kaggle o Google Colab.
 

@@ -1,10 +1,11 @@
 // @vitest-environment jsdom
 import "@testing-library/jest-dom/vitest"
-import { render, screen, waitFor } from "@testing-library/react"
+import { cleanup, render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { PhotoPicker } from "./photo-picker"
 import { saveDiagnosis } from "@/lib/storage/diagnosesRepo"
+import { classifyLeaf } from "@/lib/diagnosis/classifyLeaf"
 
 vi.mock("@/lib/image/compress", () => ({ compressImage: vi.fn(async (file: Blob) => file) }))
 vi.mock("@/lib/storage/photosRepo", () => ({ savePhoto: vi.fn(async () => ({ id: "foto-1" })) }))
@@ -21,7 +22,7 @@ describe("PhotoPicker", () => {
     vi.stubGlobal("URL", TestURL)
   })
 
-  afterEach(() => vi.unstubAllGlobals())
+  afterEach(() => { cleanup(); vi.unstubAllGlobals() })
 
   it("permite elegir, previsualizar y guardar una foto", async () => {
     const user = userEvent.setup()
@@ -47,5 +48,20 @@ describe("PhotoPicker", () => {
     await user.click(screen.getByRole("button", { name: "Volver al panel" }))
 
     expect(onBack).toHaveBeenCalledOnce()
+  })
+
+  it("muestra y guarda un resultado real sin marcarlo como demostración", async () => {
+    vi.mocked(classifyLeaf).mockResolvedValueOnce({ label: "rust", confidence: 94.5, isDemo: false })
+    const user = userEvent.setup()
+    const { container } = render(<PhotoPicker />)
+    await user.upload(container.querySelector('input[type="file"]') as HTMLInputElement,
+      new File(["image"], "hoja.png", { type: "image/png" }))
+    await user.click(screen.getByRole("button", { name: "Usar esta foto" }))
+    await waitFor(() => expect(screen.getByRole("button", { name: "Guardar en historial" })).toBeInTheDocument())
+    expect(screen.queryByText("Resultado de demostración")).not.toBeInTheDocument()
+    await user.click(screen.getByRole("button", { name: "Guardar en historial" }))
+    await waitFor(() => expect(saveDiagnosis).toHaveBeenCalledWith(expect.objectContaining({
+      label: "rust", confidence: 94.5, isDemo: false,
+    })))
   })
 })

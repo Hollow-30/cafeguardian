@@ -1,7 +1,7 @@
 export const photoCopy = {
   eyebrow: "Registro de hoja",
   title: "Sube una foto de tu hoja",
-  description: "La foto se guarda en tu teléfono y queda pendiente de análisis.",
+  description: "Analizamos la foto con conexión a internet. Puedes guardar el resultado en tu teléfono.",
   camera: "Tomar foto",
   gallery: "Elegir de galería",
   previewTitle: "Revisa tu foto",

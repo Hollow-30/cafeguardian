@@ -1,6 +1,6 @@
 import { assertFotoUpload } from "@/lib/fotos/validation"
 import { parseClassification, type Classification, type ClassificationProvider } from "./contract"
-import { createMockProvider } from "./mock"
+import { createHttpProvider } from "./http"
 
 export type { Classification } from "./contract"
 
@@ -11,4 +11,4 @@ export function createLeafClassifier(provider: ClassificationProvider) {
   }
 }
 
-export const classifyLeaf = createLeafClassifier(createMockProvider())
+export const classifyLeaf = createLeafClassifier(createHttpProvider())

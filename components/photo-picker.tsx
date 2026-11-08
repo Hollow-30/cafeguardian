@@ -36,7 +36,7 @@ export function ProcessingState() {
     <div role="status" aria-live="polite" className="flex min-h-64 flex-col items-center justify-center gap-4 text-center">
       <LoaderCircle className="size-12 animate-spin text-emerald-700" aria-hidden="true" />
       <h2 className="text-xl font-semibold text-emerald-950">{photoCopy.processing}</h2>
-      <p className="text-sm text-slate-600">La foto permanece en tu teléfono.</p>
+      <p className="text-sm text-slate-600">Enviamos la foto para analizarla. Necesitas conexión a internet.</p>
     </div>
   )
 }
