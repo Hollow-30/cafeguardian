@@ -3,12 +3,12 @@
 import Link from "next/link"
 import { useEffect, useState } from "react"
 import { ArrowLeft, ArrowRight, Share2, Trash2, ZoomIn, ZoomOut } from "lucide-react"
-import { diagnosisCopy } from "@/content/diagnosis"
+import { diagnosisCopy, getDiagnosisOrigin } from "@/content/diagnosis"
 import { historyCopy } from "@/content/history"
 import { getDiagnosis, listDiagnoses, updateDiagnosisNote, type StoredDiagnosis } from "@/lib/storage/diagnosesRepo"
 
 export function diagnosisSummary(diagnosis: StoredDiagnosis) {
-  return `Diagnóstico: ${diagnosisCopy.labels[diagnosis.label]}. Confianza: ${diagnosis.confidence}%. Fecha: ${new Date(diagnosis.createdAt).toLocaleString("es-PE")}.`
+  return `${getDiagnosisOrigin(diagnosis.isDemo)}. Diagnóstico: ${diagnosisCopy.labels[diagnosis.label]}. Confianza: ${diagnosis.confidence}%. Fecha: ${new Date(diagnosis.createdAt).toLocaleString("es-PE")}.`
 }
 
 export async function shareDiagnosis(diagnosis: StoredDiagnosis, imageUrl: string) {
@@ -102,6 +102,7 @@ export function DiagnosisDetail({ id }: { id: string }) {
         </div>
         <section className="rounded-2xl border border-emerald-100 p-5">
           <h2 className="text-2xl font-bold text-emerald-950">{diagnosisCopy.labels[diagnosis.label]}</h2>
+          <p className="mt-2 text-sm font-semibold">{getDiagnosisOrigin(diagnosis.isDemo)}</p>
           <p className="mt-2 text-lg">Confianza: {diagnosis.confidence}%</p>
           <p className="mt-1 text-sm text-slate-600">{date}</p>
           <p className="mt-1 text-sm text-slate-600">{diagnosis.status === "offline" ? historyCopy.offline : historyCopy.synced}</p>

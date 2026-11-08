@@ -11,6 +11,7 @@ export type StoredDiagnosis = {
   blob: Blob
   label: DiagnosisKey
   confidence: number
+  isDemo?: boolean
   status: DiagnosisStatus
   createdAt: string
   lote: string

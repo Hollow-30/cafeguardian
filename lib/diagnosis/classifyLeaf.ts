@@ -1,8 +1,14 @@
-import { diagnosisCopy, type DiagnosisKey } from "@/content/diagnosis"
+import { assertFotoUpload } from "@/lib/fotos/validation"
+import { parseClassification, type Classification, type ClassificationProvider } from "./contract"
+import { createMockProvider } from "./mock"
 
-export type Classification = { label: DiagnosisKey; confidence: number; isDemo: boolean }
+export type { Classification } from "./contract"
 
-/** Adaptador único para reemplazar por el modelo real cuando esté disponible. */
-export async function classifyLeaf(_blob: Blob): Promise<Classification> {
-  return { label: "healthy", confidence: diagnosisCopy.confidenceThreshold, isDemo: true }
+export function createLeafClassifier(provider: ClassificationProvider) {
+  return async (blob: Blob): Promise<Classification> => {
+    assertFotoUpload({ byteSize: blob.size, contentType: blob.type })
+    return parseClassification(await provider(blob))
+  }
 }
+
+export const classifyLeaf = createLeafClassifier(createMockProvider())

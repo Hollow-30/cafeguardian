@@ -162,6 +162,7 @@ export function PhotoPicker({ onBack, onSaved }: PhotoPickerProps) {
         blob: compressedBlob,
         label: classification.label,
         confidence: classification.confidence,
+        isDemo: classification.isDemo,
         lote: lote.trim(),
       })
       setStep("saved")
