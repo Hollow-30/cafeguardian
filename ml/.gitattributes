@@ -1,0 +1,8 @@
+# Preserve exact bytes used by CAFG-106 SHA-256 provenance on all platforms.
+src/dataset.py -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+src/evaluation.py -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+reports/dataset_manifest.csv -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+reports/evaluation_exclusions.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+reports/cafg106-kaggle-v2/** -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+reports/cafg106-evaluacion-149/** -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+.gitattributes text eol=lf

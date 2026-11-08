@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "issue": "CAFG-106",
+  "source_manifest_sha256": "b108a954018011e4d4705342970f27921ca90d29d79d5099e988c2c0cf147cde",
+  "authorization": "Exclusión única autorizada explícitamente por el usuario por integridad del JPEG, antes de ejecutar la evaluación definitiva. No responde al rendimiento del modelo.",
+  "exclusions": [
+    {
+      "ruta": "/kaggle/input/datasets/claudiobances/coffee-leaf-dataset-by-phytosanitary-class/coffee_leaves/Roya/Roya 752.jpg",
+      "sha256": "4134a59cdff7584c8ce4a80f40ca4e410988599c11d30a9474b4034caab93ff1",
+      "clase": "Roya",
+      "split": "test",
+      "reason_code": "corrupt_jpeg",
+      "reason": "Corrupción comprobada del flujo JPEG: Pillow 13.0.0, 12.0.0 y 11.3.0 fallan en lectura estricta; Torchvision rechaza un marcador inválido. OpenCV y lectura tolerante producen una región gris incompleta. El SHA-256 coincide con el manifiesto original.",
+      "evidence": "cafg106-kaggle-v2/informe-diagnostico-jpeg.md"
+    }
+  ]
+}

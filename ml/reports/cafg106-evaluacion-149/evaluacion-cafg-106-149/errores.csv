@@ -1,0 +1,3 @@
+ruta,sha256,real,prediccion,confianza,correcta
+/kaggle/input/datasets/claudiobances/coffee-leaf-dataset-by-phytosanitary-class/coffee_leaves/Sanas/Sana 735.jpg,8c9a95084f5ca6cfcbd5b9b0933d22b7151b03916d2da51c21cb13ea67e7fc9d,Sanas,Roya,0.781348705291748,False
+/kaggle/input/datasets/claudiobances/coffee-leaf-dataset-by-phytosanitary-class/coffee_leaves/Sanas/Sana 608.jpg,3076b7d1819601b2abb46a78dc8022b525d7962f90239285fc0c0f3c964b1528,Sanas,Roya,0.5124303698539734,False

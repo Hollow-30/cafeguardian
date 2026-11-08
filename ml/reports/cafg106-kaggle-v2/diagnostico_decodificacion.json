@@ -1,0 +1,18 @@
+{
+  "test_count": 150,
+  "decoded": 149,
+  "failures": [
+    {
+      "ruta": "/kaggle/input/datasets/claudiobances/coffee-leaf-dataset-by-phytosanitary-class/coffee_leaves/Roya/Roya 752.jpg",
+      "clase": "Roya",
+      "sha256": "4134a59cdff7584c8ce4a80f40ca4e410988599c11d30a9474b4034caab93ff1",
+      "error_type": "OSError",
+      "error": "broken data stream when reading image file"
+    }
+  ],
+  "pillow": "13.0.0",
+  "python": "3.13.18",
+  "load_truncated_images": false,
+  "manifest_sha256": "b108a954018011e4d4705342970f27921ca90d29d79d5099e988c2c0cf147cde",
+  "checkpoint_sha256": "b100e884ee036697f764b4d96b324db8e7a5c3148900552bbdffd7d5d01d29ce"
+}

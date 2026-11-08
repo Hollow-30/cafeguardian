@@ -1,0 +1,60 @@
+[{"stream_name":"stderr","time":10.999772585,"data":"0.00s - Debugger warning: It seems that frozen modules are being used, which may\n"}
+,{"stream_name":"stderr","time":10.999824988,"data":"0.00s - make the debugger miss breakpoints. Please pass -Xfrozen_modules=off\n"}
+,{"stream_name":"stderr","time":10.999831032,"data":"0.00s - to python to disable frozen modules.\n"}
+,{"stream_name":"stderr","time":10.999838688,"data":"0.00s - Note: Debugging will proceed. Set PYDEVD_DISABLE_FILE_VALIDATION=1 to disable this validation.\n"}
+,{"stream_name":"stderr","time":11.93032247,"data":"0.00s - Debugger warning: It seems that frozen modules are being used, which may\n"}
+,{"stream_name":"stderr","time":11.930358424,"data":"0.00s - make the debugger miss breakpoints. Please pass -Xfrozen_modules=off\n"}
+,{"stream_name":"stderr","time":11.930364008,"data":"0.00s - to python to disable frozen modules.\n"}
+,{"stream_name":"stderr","time":11.930366878,"data":"0.00s - Note: Debugging will proceed. Set PYDEVD_DISABLE_FILE_VALIDATION=1 to disable this validation.\n"}
+,{"stream_name":"stdout","time":13.652588913,"data":"Código: /kaggle/input/datasets/claudiobances/cafg-106-evaluation-resources\n"}
+,{"stream_name":"stdout","time":13.652639065,"data":"Imágenes: /kaggle/input/datasets/claudiobances/coffee-leaf-dataset-by-phytosanitary-class/coffee_leaves\n"}
+,{"stream_name":"stdout","time":13.652645111,"data":"Resultados: /kaggle/working/evaluacion-cafg-106\n"}
+,{"stream_name":"stdout","time":13.808465709,"data":"Módulo de evaluación: /kaggle/input/datasets/claudiobances/cafg-106-evaluation-resources/evaluation.py\n"}
+,{"stream_name":"stdout","time":46.875609222,"data":"{\n"}
+,{"stream_name":"stdout","time":46.875638743,"data":"  \"test_count\": 150,\n"}
+,{"stream_name":"stdout","time":46.875644606,"data":"  \"decoded\": 149,\n"}
+,{"stream_name":"stdout","time":46.875649153,"data":"  \"failures\": [\n"}
+,{"stream_name":"stdout","time":46.875653589,"data":"    {\n"}
+,{"stream_name":"stdout","time":46.875658023,"data":"      \"ruta\": \"/kaggle/input/datasets/claudiobances/coffee-leaf-dataset-by-phytosanitary-class/coffee_leaves/Roya/Roya 752.jpg\",\n"}
+,{"stream_name":"stdout","time":46.875663065,"data":"      \"clase\": \"Roya\",\n"}
+,{"stream_name":"stdout","time":46.875667495,"data":"      \"sha256\": \"4134a59cdff7584c8ce4a80f40ca4e410988599c11d30a9474b4034caab93ff1\",\n"}
+,{"stream_name":"stdout","time":46.875671987,"data":"      \"error_type\": \"OSError\",\n"}
+,{"stream_name":"stdout","time":46.875677036,"data":"      \"error\": \"broken data stream when reading image file\"\n"}
+,{"stream_name":"stdout","time":46.875682328,"data":"    }\n"}
+,{"stream_name":"stdout","time":46.875686613,"data":"  ],\n"}
+,{"stream_name":"stdout","time":46.875691176,"data":"  \"pillow\": \"13.0.0\",\n"}
+,{"stream_name":"stdout","time":46.875695861,"data":"  \"python\": \"3.13.18\",\n"}
+,{"stream_name":"stdout","time":46.875700308,"data":"  \"load_truncated_images\": false,\n"}
+,{"stream_name":"stdout","time":46.875705202,"data":"  \"manifest_sha256\": \"b108a954018011e4d4705342970f27921ca90d29d79d5099e988c2c0cf147cde\",\n"}
+,{"stream_name":"stdout","time":46.875710471,"data":"  \"checkpoint_sha256\": \"b100e884ee036697f764b4d96b324db8e7a5c3148900552bbdffd7d5d01d29ce\"\n"}
+,{"stream_name":"stdout","time":46.87571559,"data":"}\n"}
+,{"stream_name":"stderr","time":47.303164337,"data":"Traceback (most recent call last):\n"}
+,{"stream_name":"stderr","time":47.303801448,"data":"  File \"\u003cstring\u003e\", line 1, in \u003cmodule\u003e\n"}
+,{"stream_name":"stderr","time":47.303825792,"data":"    import sys;import papermill as pm;pm.execute_notebook(\"__notebook__.ipynb\",\"__notebook__.ipynb\",progress_bar=False,log_output=True,stdout_file=sys.stdout,stderr_file=sys.stderr,allow_errors=False,timeout=1800)\n"}
+,{"stream_name":"stderr","time":47.303851542,"data":"                                      ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n"}
+,{"stream_name":"stderr","time":47.303857008,"data":"  File \"/usr/local/lib/python3.13/dist-packages/papermill/execute.py\", line 131, in execute_notebook\n"}
+,{"stream_name":"stderr","time":47.303861282,"data":"    raise_for_execution_errors(nb, output_path)\n"}
+,{"stream_name":"stderr","time":47.303864954,"data":"    ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^\n"}
+,{"stream_name":"stderr","time":47.30386871,"data":"  File \"/usr/local/lib/python3.13/dist-packages/papermill/execute.py\", line 251, in raise_for_execution_errors\n"}
+,{"stream_name":"stderr","time":47.303879505,"data":"    raise error\n"}
+,{"stream_name":"stderr","time":47.30388212,"data":"papermill.exceptions.PapermillExecutionError: \n"}
+,{"stream_name":"stderr","time":47.303884489,"data":"---------------------------------------------------------------------------\n"}
+,{"stream_name":"stderr","time":47.303887134,"data":"Exception encountered at \"In [4]\":\n"}
+,{"stream_name":"stderr","time":47.303889598,"data":"---------------------------------------------------------------------------\n"}
+,{"stream_name":"stderr","time":47.303895805,"data":"RuntimeError                              Traceback (most recent call last)\n"}
+,{"stream_name":"stderr","time":47.303898231,"data":"/tmp/ipykernel_16/3920401862.py in \u003ccell line: 0\u003e()\n"}
+,{"stream_name":"stderr","time":47.303900865,"data":"     15 print(json.dumps(diagnostic, ensure_ascii=False, indent=2))\n"}
+,{"stream_name":"stderr","time":47.303903267,"data":"     16 if failures:\n"}
+,{"stream_name":"stderr","time":47.303905706,"data":"---\u003e 17     raise RuntimeError(f'{len(failures)} test images cannot be decoded with strict Pillow settings; evaluation stopped without excluding any image')\n"}
+,{"stream_name":"stderr","time":47.303908377,"data":"\n"}
+,{"stream_name":"stderr","time":47.303910869,"data":"RuntimeError: 1 test images cannot be decoded with strict Pillow settings; evaluation stopped without excluding any image\n"}
+,{"stream_name":"stderr","time":47.303913422,"data":"\n"}
+,{"stream_name":"stderr","time":50.231743165,"data":"/usr/local/lib/python3.13/dist-packages/mistune.py:435: SyntaxWarning: invalid escape sequence '\\|'\n"}
+,{"stream_name":"stderr","time":50.231776879,"data":"  cells[i][c] = re.sub('\\\\\\\\\\|', '|', cell)\n"}
+,{"stream_name":"stderr","time":50.459548376,"data":"/usr/local/lib/python3.13/dist-packages/nbconvert/filters/filter_links.py:36: SyntaxWarning: invalid escape sequence '\\_'\n"}
+,{"stream_name":"stderr","time":50.459579812,"data":"  text = re.sub(r'_', '\\_', text) # Escape underscores in display text\n"}
+,{"stream_name":"stderr","time":51.436450033,"data":"[NbConvertApp] Converting notebook __notebook__.ipynb to notebook\n"}
+,{"stream_name":"stderr","time":51.535136677,"data":"[NbConvertApp] Writing 14825 bytes to __notebook__.ipynb\n"}
+,{"stream_name":"stderr","time":54.673694538,"data":"[NbConvertApp] Converting notebook __notebook__.ipynb to html\n"}
+,{"stream_name":"stderr","time":55.329786248,"data":"[NbConvertApp] Writing 302788 bytes to __results__.html\n"}
+]

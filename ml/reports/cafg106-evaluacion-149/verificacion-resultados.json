@@ -1,0 +1,28 @@
+{
+  "status": "passed",
+  "notebook": "claudiobances/04-evaluacion-modelo/3",
+  "resource_version": "claudiobances/cafg-106-evaluation-resources/2",
+  "original_test": 150,
+  "excluded": 1,
+  "evaluated": 149,
+  "class_support": {
+    "Roya": 74,
+    "Sanas": 75
+  },
+  "correct": 147,
+  "errors": 2,
+  "confusion_matrix": [
+    [
+      74,
+      0
+    ],
+    [
+      2,
+      73
+    ]
+  ],
+  "metrics_recomputed_from_csv": true,
+  "original_order_preserved": true,
+  "source_and_artifact_hashes_match": true,
+  "private_cpu_without_internet": true
+}
