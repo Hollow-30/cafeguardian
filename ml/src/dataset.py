@@ -29,6 +29,7 @@ class CoffeeLeafDataset(Dataset): #Carga imágenes de café según las asignacio
         manifest_path,
         split,
         transform=None,
+        image_root=None,
     ):
         self.manifest_path = Path(manifest_path)
         self.manifest = pd.read_csv(self.manifest_path)
@@ -52,6 +53,7 @@ class CoffeeLeafDataset(Dataset): #Carga imágenes de café según las asignacio
         )
 
         self.transform = transform
+        self.image_root = Path(image_root) if image_root is not None else None
 
         self.class_to_idx = {
             "Roya": 0,
@@ -73,6 +75,8 @@ class CoffeeLeafDataset(Dataset): #Carga imágenes de café según las asignacio
     def __getitem__(self, index):
         row = self.data.iloc[index]
         image_path = Path(row["ruta"])
+        if self.image_root is not None:
+            image_path = self.image_root / row["clase"] / image_path.name
 
         if not image_path.is_file():
             raise FileNotFoundError(
@@ -89,7 +93,7 @@ class CoffeeLeafDataset(Dataset): #Carga imágenes de café según las asignacio
 
         return image, label
 
-def create_dataset(manifest_path, split): # Crea un dataset con transformaciones según el conjunto.
+def create_dataset(manifest_path, split, image_root=None): # Crea un dataset con transformaciones según el conjunto.
     if split == "train":
         transform = DEFAULT_TRAIN_TRANSFORM
     elif split in {"val", "test"}:
@@ -103,4 +107,5 @@ def create_dataset(manifest_path, split): # Crea un dataset con transformaciones
         manifest_path=manifest_path,
         split=split,
         transform=transform,
+        image_root=image_root,
     )

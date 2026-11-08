@@ -1,0 +1,22 @@
+{
+  "id": "claudiobances/cafg-106-diagnostico-jpeg",
+  "id_no": 143458355,
+  "title": "cafg-106-diagnostico-jpeg",
+  "code_file": "cafg-106-diagnostico-jpeg.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": true,
+  "enable_gpu": false,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "keywords": [],
+  "dataset_sources": [
+    "claudiobances/cafg-106-evaluation-resources",
+    "claudiobances/coffee-leaf-dataset-by-phytosanitary-class"
+  ],
+  "kernel_sources": [],
+  "competition_sources": [],
+  "model_sources": [],
+  "docker_image": "gcr.io/kaggle-images/python@sha256:0717e81990be591f8c5f98f033d29ab23e9ffde057e5b3a6bd4371f93969e962",
+  "machine_shape": "None"
+}

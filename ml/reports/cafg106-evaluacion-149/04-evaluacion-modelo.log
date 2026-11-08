@@ -1,0 +1,34 @@
+[{"stream_name":"stderr","time":10.738116628,"data":"0.00s - Debugger warning: It seems that frozen modules are being used, which may\n"}
+,{"stream_name":"stderr","time":10.738191240999999,"data":"0.00s - make the debugger miss breakpoints. Please pass -Xfrozen_modules=off\n"}
+,{"stream_name":"stderr","time":10.738197181,"data":"0.00s - to python to disable frozen modules.\n"}
+,{"stream_name":"stderr","time":10.738200333,"data":"0.00s - Note: Debugging will proceed. Set PYDEVD_DISABLE_FILE_VALIDATION=1 to disable this validation.\n"}
+,{"stream_name":"stderr","time":11.700099275,"data":"0.00s - Debugger warning: It seems that frozen modules are being used, which may\n"}
+,{"stream_name":"stderr","time":11.700157109,"data":"0.00s - make the debugger miss breakpoints. Please pass -Xfrozen_modules=off\n"}
+,{"stream_name":"stderr","time":11.700165463,"data":"0.00s - to python to disable frozen modules.\n"}
+,{"stream_name":"stderr","time":11.700169812,"data":"0.00s - Note: Debugging will proceed. Set PYDEVD_DISABLE_FILE_VALIDATION=1 to disable this validation.\n"}
+,{"stream_name":"stdout","time":13.545139359,"data":"Código: /kaggle/input/datasets/claudiobances/cafg-106-evaluation-resources\n"}
+,{"stream_name":"stdout","time":13.545191088,"data":"Imágenes: /kaggle/input/datasets/claudiobances/coffee-leaf-dataset-by-phytosanitary-class/coffee_leaves\n"}
+,{"stream_name":"stdout","time":13.545199291,"data":"Resultados: /kaggle/working/evaluacion-cafg-106-149\n"}
+,{"stream_name":"stdout","time":14.014515652,"data":"Módulo de evaluación: /kaggle/input/datasets/claudiobances/cafg-106-evaluation-resources/evaluation.py\n"}
+,{"stream_name":"stdout","time":87.44847812,"data":"{'accuracy': 0.9865771812080537, 'per_class': {'Roya': {'precision': 0.9736842105263158, 'recall': 1.0, 'f1': 0.9866666666666666, 'support': 74}, 'Sanas': {'precision': 1.0, 'recall': 0.9733333333333334, 'f1': 0.9864864864864865, 'support': 75}}, 'confusion_matrix': [[74, 0], [2, 73]], 'class_order': ['Roya', 'Sanas'], 'total': 149, 'zero_division': 0, 'original_test': {'total': 150, 'per_class': {'Roya': 75, 'Sanas': 75}}, 'evaluated_test': {'total': 149, 'per_class': {'Roya': 74, 'Sanas': 75}}, 'excluded_count': 1}\n"}
+,{"stream_name":"stdout","time":87.49974216,"data":"Archivos generados:\n"}
+,{"stream_name":"stdout","time":87.49980694,"data":"errores.csv 477 bytes\n"}
+,{"stream_name":"stdout","time":87.499814278,"data":"errores_Sanas_Roya.png 397406 bytes\n"}
+,{"stream_name":"stdout","time":87.499819717,"data":"exclusiones.json 1005 bytes\n"}
+,{"stream_name":"stdout","time":87.49982492,"data":"informe.md 2275 bytes\n"}
+,{"stream_name":"stdout","time":87.499830028,"data":"matriz_confusion.png 28224 bytes\n"}
+,{"stream_name":"stdout","time":87.499835232,"data":"metricas.json 734 bytes\n"}
+,{"stream_name":"stdout","time":87.499840503,"data":"predicciones.csv 31869 bytes\n"}
+,{"stream_name":"stdout","time":87.499845754,"data":"procedencia.json 2184 bytes\n"}
+,{"stream_name":"stderr","time":93.366078307,"data":"/usr/local/lib/python3.13/dist-packages/mistune.py:435: SyntaxWarning: invalid escape sequence '\\|'\n"}
+,{"stream_name":"stderr","time":93.366131555,"data":"  cells[i][c] = re.sub('\\\\\\\\\\|', '|', cell)\n"}
+,{"stream_name":"stderr","time":93.615670266,"data":"/usr/local/lib/python3.13/dist-packages/nbconvert/filters/filter_links.py:36: SyntaxWarning: invalid escape sequence '\\_'\n"}
+,{"stream_name":"stderr","time":93.615711494,"data":"  text = re.sub(r'_', '\\_', text) # Escape underscores in display text\n"}
+,{"stream_name":"stderr","time":94.645166639,"data":"[NbConvertApp] Converting notebook __notebook__.ipynb to notebook\n"}
+,{"stream_name":"stderr","time":94.765545549,"data":"[NbConvertApp] Writing 582855 bytes to __notebook__.ipynb\n"}
+,{"stream_name":"stderr","time":98.541198972,"data":"[NbConvertApp] Converting notebook __notebook__.ipynb to html\n"}
+,{"stream_name":"stderr","time":99.297070709,"data":"[NbConvertApp] Support files will be in __results___files/\n"}
+,{"stream_name":"stderr","time":99.297117204,"data":"[NbConvertApp] Making directory __results___files\n"}
+,{"stream_name":"stderr","time":99.297796779,"data":"[NbConvertApp] Making directory __results___files\n"}
+,{"stream_name":"stderr","time":99.298226027,"data":"[NbConvertApp] Writing 299948 bytes to __results__.html\n"}
+]

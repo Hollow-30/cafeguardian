@@ -1,0 +1,60 @@
+{
+  "notebook": "claudiobances/cafg-106-diagnostico-jpeg/1",
+  "files": [
+    {
+      "path": "diagnose_jpeg.py",
+      "size_bytes": 12334,
+      "sha256": "2c79c72e8912001e601ab13d70c522a012706b68b1cb21668c975160e993322b"
+    },
+    {
+      "path": "informe-diagnostico-jpeg.md",
+      "size_bytes": 9441,
+      "sha256": "96b03fc6a46a0113817372310241ca9dea67abd8d65834aed49a05cc5070de0d"
+    },
+    {
+      "path": "jpeg-compatibility/cafg-106-diagnostico-jpeg.log",
+      "size_bytes": 43451,
+      "sha256": "332c4b95a4cefc7c9300bb248855b82aec07285c24255559d3304f3ff1379639"
+    },
+    {
+      "path": "jpeg-compatibility/jpeg_diagnostic/difference_pillow_opencv_x8.png",
+      "size_bytes": 4267,
+      "sha256": "7e1a75ad8f4144f69a4ebd9a3ba56da95d4df15622bc90407260f51622909b07"
+    },
+    {
+      "path": "jpeg-compatibility/jpeg_diagnostic/jpeg_diagnostic.json",
+      "size_bytes": 88630,
+      "sha256": "9eb095a213a14b5abe47c27fe55bd9ac3fb33946b6cc1000daffeccaf9dbc752"
+    },
+    {
+      "path": "jpeg-compatibility/jpeg_diagnostic/preview_opencv.png",
+      "size_bytes": 1231999,
+      "sha256": "9e347aaffedf1760e0c07832d1852ae13c4fcc3b13a8e70b07f095d89df05656"
+    },
+    {
+      "path": "jpeg-compatibility/jpeg_diagnostic/preview_pillow11.3.0_tolerant.png",
+      "size_bytes": 1231999,
+      "sha256": "9e347aaffedf1760e0c07832d1852ae13c4fcc3b13a8e70b07f095d89df05656"
+    },
+    {
+      "path": "jpeg-compatibility/jpeg_diagnostic/preview_pillow12.0.0_tolerant.png",
+      "size_bytes": 1231999,
+      "sha256": "9e347aaffedf1760e0c07832d1852ae13c4fcc3b13a8e70b07f095d89df05656"
+    },
+    {
+      "path": "jpeg-compatibility/jpeg_diagnostic/preview_pillow13_tolerant.png",
+      "size_bytes": 1231999,
+      "sha256": "9e347aaffedf1760e0c07832d1852ae13c4fcc3b13a8e70b07f095d89df05656"
+    },
+    {
+      "path": "jpeg-compatibility/notebook/cafg-106-diagnostico-jpeg.ipynb",
+      "size_bytes": 13934,
+      "sha256": "5d8ddb5ee907aaa5fd20e7bc2fd715e782d6c53d41bec92e23febb48dfcb96ea"
+    },
+    {
+      "path": "jpeg-compatibility/notebook/kernel-metadata.json",
+      "size_bytes": 718,
+      "sha256": "6a81fd7de706baddabc7329fe35a5c16e209ef2edf0fbd5d8a6db677beb453ec"
+    }
+  ]
+}
