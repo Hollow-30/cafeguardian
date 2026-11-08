@@ -13,6 +13,14 @@ describe("detalle del historial", () => {
     expect(diagnosisSummary(diagnosis)).toContain("88%")
   })
 
+  it.each([
+    [true, "Resultado de demostración"],
+    [false, "Resultado del modelo"],
+    [undefined, "Origen del diagnóstico no verificado"],
+  ] as const)("conserva el origen %s en el resumen compartido", (isDemo, expected) => {
+    expect(diagnosisSummary({ ...diagnosis, isDemo })).toContain(expected)
+  })
+
   it("usa fallback de descarga y copia cuando Web Share no existe", async () => {
     const click = vi.fn()
     vi.spyOn(document, "createElement").mockReturnValue({ href: "", download: "", click } as unknown as HTMLAnchorElement)

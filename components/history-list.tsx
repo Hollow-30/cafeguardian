@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { useEffect, useMemo, useState } from "react"
 import { ChevronRight, Leaf } from "lucide-react"
-import { diagnosisCopy, type DiagnosisKey } from "@/content/diagnosis"
+import { diagnosisCopy, getDiagnosisOrigin, type DiagnosisKey } from "@/content/diagnosis"
 import { filterDiagnoses, historyCopy, paginateDiagnoses, resultFilters, sortDiagnoses } from "@/content/history"
 import { listDiagnoses, type StoredDiagnosis } from "@/lib/storage/diagnosesRepo"
 import { Button } from "@/components/ui/button"
@@ -67,6 +67,7 @@ export function HistoryCard({ diagnosis }: { diagnosis: StoredDiagnosis }) {
           <h2 className="font-bold text-emerald-950">{label}</h2>
           <SyncStatusBadge status={diagnosis.status} />
         </div>
+        <p className="mt-1 text-sm font-semibold text-slate-700">{getDiagnosisOrigin(diagnosis.isDemo)}</p>
         <p className="mt-1 text-sm text-slate-600">{new Date(diagnosis.createdAt).toLocaleDateString("es-PE", { dateStyle: "medium" })}</p>
         <p className="mt-1 text-sm font-semibold text-slate-700">Confianza: {diagnosis.confidence}%</p>
       </div>

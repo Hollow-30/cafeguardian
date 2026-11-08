@@ -7,13 +7,11 @@ export const diagnosisCopy = {
   labels: {
     healthy: "Sana",
     rust: "Roya",
-    ojoDeGallo: "Ojo de gallo",
     inconclusive: "No concluyente",
   },
   explanations: {
     healthy: "No se observan señales claras de enfermedad en esta foto.",
     rust: "La imagen muestra señales parecidas a roya, pero confirma el resultado con tu técnico.",
-    ojoDeGallo: "La imagen muestra señales parecidas a ojo de gallo, pero confirma el resultado con tu técnico.",
     inconclusive: "La foto no tiene suficiente información para orientar un resultado.",
   },
   nextStep: "Siguiente paso",
@@ -23,6 +21,12 @@ export const diagnosisCopy = {
 
 export type DiagnosisKey = keyof typeof diagnosisCopy.labels
 export type DiagnosisLabel = { key: DiagnosisKey; text: string }
+
+export function getDiagnosisOrigin(isDemo: boolean | undefined) {
+  if (isDemo === true) return diagnosisCopy.demo
+  if (isDemo === false) return "Resultado del modelo"
+  return "Origen del diagnóstico no verificado"
+}
 
 export function mapDiagnosisLabel(key: DiagnosisKey): DiagnosisLabel {
   return { key, text: diagnosisCopy.labels[key] }

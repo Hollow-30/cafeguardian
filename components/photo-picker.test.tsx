@@ -4,6 +4,7 @@ import { render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { PhotoPicker } from "./photo-picker"
+import { saveDiagnosis } from "@/lib/storage/diagnosesRepo"
 
 vi.mock("@/lib/image/compress", () => ({ compressImage: vi.fn(async (file: Blob) => file) }))
 vi.mock("@/lib/storage/photosRepo", () => ({ savePhoto: vi.fn(async () => ({ id: "foto-1" })) }))
@@ -35,6 +36,7 @@ describe("PhotoPicker", () => {
     await user.click(screen.getByRole("button", { name: "Guardar en historial" }))
     await waitFor(() => expect(screen.getByText("Diagnóstico guardado en este dispositivo.")).toBeInTheDocument())
     expect(screen.getByRole("link", { name: "Ver historial" })).toHaveAttribute("href", "/historial")
+    expect(saveDiagnosis).toHaveBeenCalledWith(expect.objectContaining({ label: "healthy", confidence: 88, isDemo: true }))
   })
 
   it("permite volver al panel", async () => {
