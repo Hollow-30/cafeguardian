@@ -1,0 +1,9 @@
+**
+!ml/
+!ml/service/
+!ml/service/*.py
+!ml/service/requirements.txt
+!ml/src/
+!ml/src/evaluation.py
+!ml/models/
+!ml/models/resnet18_coffee_base.pth

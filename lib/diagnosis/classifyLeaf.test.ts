@@ -6,11 +6,11 @@ import { createMockProvider, mockScenarios, type MockScenario } from "./mock"
 const photo = () => new Blob(["leaf"], { type: "image/jpeg" })
 
 describe("classifyLeaf", () => {
-  it("returns a typed demo classification without uploading", async () => {
-    const fetchSpy = vi.spyOn(globalThis, "fetch")
+  it("uses the real HTTP provider by default", async () => {
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(Response.json({ label: "healthy", confidence: 88, isDemo: false }))
     try {
-      expect(await classifyLeaf(photo())).toEqual({ label: "healthy", confidence: 88, isDemo: true })
-      expect(fetchSpy).not.toHaveBeenCalled()
+      expect(await classifyLeaf(photo())).toEqual({ label: "healthy", confidence: 88, isDemo: false })
+      expect(fetchSpy).toHaveBeenCalledWith("/api/diagnostico", expect.objectContaining({ method: "POST", body: expect.any(Blob) }))
     } finally {
       fetchSpy.mockRestore()
     }
@@ -43,7 +43,7 @@ describe("classifyLeaf", () => {
   })
 
   it.each(["image/jpeg", "image/png", "image/webp"])("accepts %s", async (type) => {
-    await expect(classifyLeaf(new Blob(["leaf"], { type }))).resolves.toMatchObject({ isDemo: true })
+    await expect(createLeafClassifier(createMockProvider())(new Blob(["leaf"], { type }))).resolves.toMatchObject({ isDemo: true })
   })
 
   it("propagates provider failures without inventing a diagnosis", async () => {

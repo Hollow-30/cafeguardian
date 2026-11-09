@@ -6,7 +6,7 @@ El contrato se mantiene para frontend y backend, según lo confirmado por el usu
 
 ## Entrada y respuesta
 
-La aplicación consume `classifyLeaf(blob): Promise<Classification>`. La entrada es un `Blob` no vacío, JPEG, PNG o WebP, de hasta 10 MiB. Esta validación comprueba tamaño y MIME declarado; no comprueba que los bytes sean una imagen válida ni evalúa su calidad. El servicio real debe validar y decodificar la imagen en CAFG-107.
+La aplicación consume `classifyLeaf(blob): Promise<Classification>`. La entrada es un `Blob` no vacío, JPEG, PNG o WebP, de hasta 10 MiB. La validación local comprueba tamaño y MIME declarado. El servicio real de CAFG-107 también comprueba el formato efectivo y decodifica estrictamente la imagen; esto no demuestra que contenga una hoja ni evalúa su calidad agronómica.
 
 ```json
 { "label": "healthy", "confidence": 88, "isDemo": true }
@@ -36,7 +36,7 @@ const classify = createLeafClassifier(createMockProvider("rust-low-confidence"))
 const result = await classify(blob)
 ```
 
-En CAFG-107 se conectará un proveedor real con la misma interfaz y se cambiará la composición de `classifyLeaf`, sin cambiar la llamada ni los componentes consumidores. El checkpoint documenta `Roya: 0` y `Sanas: 1`; el proveedor deberá mapearlos a `rust` y `healthy`, y convertir probabilidades de 0–1 a porcentajes. La prueba de sustitución utiliza un proveedor de prueba; todavía no demuestra equivalencia con un servicio real desplegado. No se define aquí un endpoint ni alojamiento.
+CAFG-107 conecta el proveedor HTTP real con la misma interfaz y cambia la composición de `classifyLeaf`. El simulador queda para uso explícito en pruebas. El checkpoint documenta `Roya: 0` y `Sanas: 1`; el servicio los mapea a `rust` y `healthy`, y convierte probabilidades de 0–1 a porcentajes. La app consume `POST /api/diagnostico`, que exige sesión y llama al servicio Python `POST /predict` con una credencial de servidor. La respuesta real exige `isDemo: false`; no hay sustitución por simulación ante errores. El alojamiento sigue pendiente de decisión del equipo. Ver [servicio de predicción](servicio-prediccion.md) para configuración, límites, tiempos y validación local.
 
 ## Confianza provisional
 
