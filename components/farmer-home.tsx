@@ -1,33 +1,13 @@
 "use client"
 
-import { useState } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { Camera, LogOut, MapPin, Sprout } from "lucide-react"
-import { createClient } from "@/lib/supabase/client"
+import { Camera, MapPin, Sprout } from "lucide-react"
 
 export function FarmerHome({ name }: { name: string }) {
-  const router = useRouter()
-  const [error, setError] = useState("")
-  const [loading, setLoading] = useState(false)
-
-  async function signOut() {
-    setLoading(true)
-    setError("")
-    const { error: signOutError } = await createClient().auth.signOut()
-    if (signOutError) {
-      setError("No se pudo cerrar la sesión. Inténtalo nuevamente.")
-      setLoading(false)
-      return
-    }
-    router.replace("/login")
-    router.refresh()
-  }
-
   return (
     <main className="min-h-screen bg-[#f7faf8] px-4 py-8 text-slate-900 sm:px-6">
       <div className="mx-auto max-w-6xl">
-        <header className="flex items-center justify-between gap-4 rounded-3xl bg-emerald-950 px-6 py-8 text-white sm:px-10">
+        <header className="flex items-start gap-4 rounded-3xl bg-emerald-950 px-6 py-8 text-white sm:px-10">
           <div className="flex items-start gap-4">
             <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-800">
               <Sprout className="size-6 text-emerald-300" aria-hidden="true" />
@@ -40,18 +20,7 @@ export function FarmerHome({ name }: { name: string }) {
               </p>
             </div>
           </div>
-          <button
-            type="button"
-            disabled={loading}
-            onClick={() => void signOut()}
-            className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-xl border border-white/30 px-4 text-sm font-semibold text-white hover:bg-white/10 disabled:opacity-60"
-          >
-            <LogOut className="size-4" aria-hidden="true" />
-            {loading ? "Cerrando..." : "Cerrar sesión"}
-          </button>
         </header>
-
-        {error && <p role="alert" className="mt-5 rounded-xl bg-red-50 p-4 text-sm text-red-800">{error}</p>}
 
         <section className="mt-8 grid gap-5 md:grid-cols-2" aria-label="Accesos rápidos">
           <Link

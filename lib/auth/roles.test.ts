@@ -91,6 +91,8 @@ describe("panel access", () => {
     expect(isAuthenticatedFeaturePath("/historial/123")).toBe(true)
     expect(isAuthenticatedFeaturePath("/planes/pagar")).toBe(true)
     expect(isAuthenticatedFeaturePath("/mis-pagos")).toBe(true)
+    expect(isAuthenticatedFeaturePath("/account")).toBe(true)
+    expect(isAuthenticatedFeaturePath("/contacto")).toBe(false)
     expect(isAuthenticatedFeaturePath("/login")).toBe(false)
     expect(isAuthenticatedFeaturePath("/")).toBe(false)
   })

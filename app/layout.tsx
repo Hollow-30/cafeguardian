@@ -38,7 +38,7 @@ export default async function RootLayout({
   return (
     <html lang="es">
       <body className="antialiased">
-        <AppNavigation role={user ? resolveRole(user) : null} />
+        <AppNavigation role={user ? resolveRole(user) : null} user={user} />
         {children}
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>

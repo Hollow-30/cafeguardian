@@ -7,6 +7,7 @@ export type Role = (typeof ROLES)[keyof typeof ROLES]
 
 export type AuthUserLike = {
   id?: string
+  email?: string
   app_metadata?: Record<string, unknown>
   user_metadata?: Record<string, unknown>
 } | null
@@ -43,7 +44,8 @@ export function isAuthenticatedFeaturePath(pathname: string): boolean {
     pathname.startsWith("/historial/") ||
     pathname === "/planes" ||
     pathname.startsWith("/planes/") ||
-    pathname === "/mis-pagos"
+    pathname === "/mis-pagos" ||
+    pathname === "/account"
   )
 }
 
