@@ -13,7 +13,7 @@
 
 | Método | Ruta | Descripción |
 |---|---|---|
-| `POST` | `/api/fotos` | multipart: `file`, `zona_id`, opcionales `resultado_etiqueta`, `confianza`, `semaforo_dia`, `semaforo_fecha` |
+| `POST` | `/api/fotos` | multipart: `file`, `zona_id` **o** `zona_etiqueta` (crea/reusa zona), opcionales `resultado_etiqueta`, `confianza`, `semaforo_dia`, `semaforo_fecha` |
 | `GET` | `/api/fotos` | historial del usuario (superadmin puede ver todos) |
 | `GET` | `/api/fotos/[id]` | metadata del historial |
 | `GET` | `/api/fotos/[id]/archivo` | binario (ACL) |

@@ -7,6 +7,7 @@ import { DiagnosisResult } from "@/components/diagnosis-result"
 import { Button } from "@/components/ui/button"
 import { photoCopy } from "@/content/photos"
 import { classifyLeaf, type Classification } from "@/lib/diagnosis/classifyLeaf"
+import { uploadFotoRegistro } from "@/lib/fotos/upload-client"
 import { compressImage } from "@/lib/image/compress"
 import { validatePhoto } from "@/lib/image/validate"
 import { saveDiagnosis } from "@/lib/storage/diagnosesRepo"
@@ -95,6 +96,7 @@ export function PhotoPicker({ onBack, onSaved }: PhotoPickerProps) {
   const [lote, setLote] = useState("")
   const [error, setError] = useState("")
   const [classification, setClassification] = useState<Classification | null>(null)
+  const [savedRemotely, setSavedRemotely] = useState(false)
 
   useEffect(() => () => {
     if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current)
@@ -113,6 +115,7 @@ export function PhotoPicker({ onBack, onSaved }: PhotoPickerProps) {
     setCompressedBlob(null)
     setPhotoId("")
     setClassification(null)
+    setSavedRemotely(false)
     setError("")
     if (cameraRef.current) cameraRef.current.value = ""
     if (galleryRef.current) galleryRef.current.value = ""
@@ -157,19 +160,48 @@ export function PhotoPicker({ onBack, onSaved }: PhotoPickerProps) {
     if (!classification || !compressedBlob || !photoId) return
     setError("")
     try {
+      const remote = await uploadFotoRegistro({
+        blob: compressedBlob,
+        lote: lote.trim(),
+        resultadoEtiqueta: classification.label,
+        confianza: classification.confidence,
+      })
       await saveDiagnosis({
-        photoId,
+        photoId: remote.id,
         blob: compressedBlob,
         label: classification.label,
         confidence: classification.confidence,
         isDemo: classification.isDemo,
         lote: lote.trim(),
+        status: "synced",
       })
+      setSavedRemotely(true)
       setStep("saved")
-      onSaved?.(photoId)
+      onSaved?.(remote.id)
     } catch (cause) {
-      console.error("No se pudo guardar el diagnóstico.", cause)
-      setError(photoCopy.errors.generic)
+      console.error("No se pudo guardar el diagnóstico remoto.", cause)
+      try {
+        await saveDiagnosis({
+          photoId,
+          blob: compressedBlob,
+          label: classification.label,
+          confidence: classification.confidence,
+          isDemo: classification.isDemo,
+          lote: lote.trim(),
+          status: "offline",
+        })
+        setSavedRemotely(false)
+        setStep("saved")
+        onSaved?.(photoId)
+        setError(
+          cause instanceof Error
+            ? `${cause.message} Se guardó solo en este dispositivo.`
+            : photoCopy.errors.generic,
+        )
+      } catch (localError) {
+        console.error("No se pudo guardar el diagnóstico local.", localError)
+        setError(cause instanceof Error ? cause.message : photoCopy.errors.generic)
+      }
     }
   }
 
@@ -241,7 +273,11 @@ export function PhotoPicker({ onBack, onSaved }: PhotoPickerProps) {
         {step === "saved" && (
           <section className="flex min-h-64 flex-col items-center justify-center gap-4 rounded-2xl border border-green-200 bg-green-50 p-6 text-center">
             <CheckCircle2 className="size-12 text-green-700" aria-hidden="true" />
-            <h2 className="text-xl font-semibold text-emerald-950">Diagnóstico guardado en este dispositivo.</h2>
+            <h2 className="text-xl font-semibold text-emerald-950">
+              {savedRemotely
+                ? "Diagnóstico y foto guardados en tu historial."
+                : "Diagnóstico guardado en este dispositivo."}
+            </h2>
             <div className="flex flex-wrap justify-center gap-3">
               <Link href="/historial" className="inline-flex h-12 items-center justify-center rounded-xl bg-emerald-800 px-5 font-semibold text-white hover:bg-emerald-900">
                 Ver historial

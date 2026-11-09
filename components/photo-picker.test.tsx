@@ -4,6 +4,7 @@ import { cleanup, render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { PhotoPicker } from "./photo-picker"
+import { uploadFotoRegistro } from "@/lib/fotos/upload-client"
 import { saveDiagnosis } from "@/lib/storage/diagnosesRepo"
 import { classifyLeaf } from "@/lib/diagnosis/classifyLeaf"
 
@@ -11,6 +12,9 @@ vi.mock("@/lib/image/compress", () => ({ compressImage: vi.fn(async (file: Blob)
 vi.mock("@/lib/storage/photosRepo", () => ({ savePhoto: vi.fn(async () => ({ id: "foto-1" })) }))
 vi.mock("@/lib/diagnosis/classifyLeaf", () => ({ classifyLeaf: vi.fn(async () => ({ label: "healthy", confidence: 88, isDemo: true })) }))
 vi.mock("@/lib/storage/diagnosesRepo", () => ({ saveDiagnosis: vi.fn(async () => ({ id: "diagnostico-1" })) }))
+vi.mock("@/lib/fotos/upload-client", () => ({
+  uploadFotoRegistro: vi.fn(async () => ({ id: "foto-remota-1" })),
+}))
 
 describe("PhotoPicker", () => {
   beforeEach(() => {
@@ -35,9 +39,22 @@ describe("PhotoPicker", () => {
     await waitFor(() => expect(screen.getByText("Resultado de demostración")).toBeInTheDocument())
     expect(screen.getByText("Es un apoyo para decidir, no reemplaza a tu técnico")).toBeInTheDocument()
     await user.click(screen.getByRole("button", { name: "Guardar en historial" }))
-    await waitFor(() => expect(screen.getByText("Diagnóstico guardado en este dispositivo.")).toBeInTheDocument())
+    await waitFor(() =>
+      expect(screen.getByText("Diagnóstico y foto guardados en tu historial.")).toBeInTheDocument(),
+    )
     expect(screen.getByRole("link", { name: "Ver historial" })).toHaveAttribute("href", "/historial")
-    expect(saveDiagnosis).toHaveBeenCalledWith(expect.objectContaining({ label: "healthy", confidence: 88, isDemo: true }))
+    expect(uploadFotoRegistro).toHaveBeenCalledWith(
+      expect.objectContaining({ resultadoEtiqueta: "healthy", confianza: 88 }),
+    )
+    expect(saveDiagnosis).toHaveBeenCalledWith(
+      expect.objectContaining({
+        photoId: "foto-remota-1",
+        label: "healthy",
+        confidence: 88,
+        isDemo: true,
+        status: "synced",
+      }),
+    )
   })
 
   it("permite volver al panel", async () => {

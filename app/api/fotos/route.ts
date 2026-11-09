@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto"
 import { NextResponse } from "next/server"
 import { canAccessFoto } from "@/lib/fotos/access"
+import { ensureZonaForUser } from "@/lib/fotos/ensure-zona"
 import { buildFotoHistoryRecord } from "@/lib/fotos/history"
 import { buildFotoObjectKey } from "@/lib/fotos/object-key"
 import { assertFotoUpload } from "@/lib/fotos/validation"
@@ -76,6 +77,7 @@ export async function POST(request: Request) {
   const form = await request.formData()
   const file = form.get("file")
   const zonaId = String(form.get("zona_id") ?? "")
+  const zonaEtiqueta = String(form.get("zona_etiqueta") ?? "")
   const consentimientoAnonimo = String(form.get("consentimiento_anonimo") ?? "") === "true"
   const resultadoEtiqueta = String(form.get("resultado_etiqueta") ?? "") || null
   const confianza = parseOptionalNumber(form.get("confianza"))
@@ -86,8 +88,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Falta el archivo de la foto." }, { status: 400 })
   }
 
-  if (!zonaId) {
-    return NextResponse.json({ error: "Falta zona_id." }, { status: 400 })
+  if (!zonaId && !zonaEtiqueta.trim()) {
+    return NextResponse.json({ error: "Falta zona_id o zona_etiqueta." }, { status: 400 })
   }
 
   try {
@@ -100,14 +102,29 @@ export async function POST(request: Request) {
   }
 
   const supabase = await createClient()
-  const { data: zona, error: zonaError } = await supabase
-    .from("zonas")
-    .select("id, profile_id, etiqueta")
-    .eq("id", zonaId)
-    .maybeSingle()
+  let zona: { id: string; profile_id: string; etiqueta: string } | null = null
 
-  if (zonaError) {
-    return NextResponse.json({ error: zonaError.message }, { status: 500 })
+  if (zonaId) {
+    const { data, error: zonaError } = await supabase
+      .from("zonas")
+      .select("id, profile_id, etiqueta")
+      .eq("id", zonaId)
+      .maybeSingle()
+
+    if (zonaError) {
+      return NextResponse.json({ error: zonaError.message }, { status: 500 })
+    }
+    zona = data
+  } else {
+    try {
+      const ensured = await ensureZonaForUser(supabase as never, user.id, zonaEtiqueta)
+      zona = { id: ensured.id, profile_id: user.id, etiqueta: ensured.etiqueta }
+    } catch (error) {
+      return NextResponse.json(
+        { error: error instanceof Error ? error.message : "No se pudo resolver la zona." },
+        { status: 500 },
+      )
+    }
   }
 
   if (!zona || !canAccessFoto({ user, fotoProfileId: zona.profile_id }) || zona.profile_id !== user.id) {
