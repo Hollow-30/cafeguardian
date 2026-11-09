@@ -5,7 +5,14 @@ import { useEffect, useMemo, useState } from "react"
 import { ChevronRight, Leaf } from "lucide-react"
 import { diagnosisCopy, getDiagnosisOrigin, type DiagnosisKey } from "@/content/diagnosis"
 import { filterDiagnoses, historyCopy, paginateDiagnoses, resultFilters, sortDiagnoses } from "@/content/history"
-import { listDiagnoses, type StoredDiagnosis } from "@/lib/storage/diagnosesRepo"
+import { fetchFotosHistorial } from "@/lib/fotos/history-client"
+import {
+  localDiagnosisToEntry,
+  mergeHistoryEntries,
+  remoteFotoToEntry,
+  type HistoryEntry,
+} from "@/lib/historial/entries"
+import { listDiagnoses } from "@/lib/storage/diagnosesRepo"
 import { Button } from "@/components/ui/button"
 
 export function HistorySkeleton() {
@@ -18,7 +25,7 @@ export function HistorySkeleton() {
   )
 }
 
-export function SyncStatusBadge({ status }: { status: StoredDiagnosis["status"] }) {
+export function SyncStatusBadge({ status }: { status: HistoryEntry["status"] }) {
   return (
     <span className={`rounded-full px-2 py-1 text-xs font-semibold ${status === "offline" ? "bg-emerald-50 text-emerald-900" : "bg-green-50 text-green-800"}`}>
       {status === "offline" ? historyCopy.offline : historyCopy.synced}
@@ -51,25 +58,42 @@ export function ResultFilter({
   )
 }
 
-export function HistoryCard({ diagnosis }: { diagnosis: StoredDiagnosis }) {
-  const label = diagnosisCopy.labels[diagnosis.label]
+export function HistoryCard({ entry }: { entry: HistoryEntry }) {
+  const label = diagnosisCopy.labels[entry.label]
+  const [thumb, setThumb] = useState(entry.imageUrl)
+
+  useEffect(() => {
+    if (entry.imageUrl) {
+      setThumb(entry.imageUrl)
+      return
+    }
+    if (!entry.blob) return
+    const url = URL.createObjectURL(entry.blob)
+    setThumb(url)
+    return () => URL.revokeObjectURL(url)
+  }, [entry.blob, entry.imageUrl])
 
   return (
     <Link
-      href={`/historial/${diagnosis.id}`}
+      href={`/historial/${entry.id}`}
       className="flex min-h-32 items-center gap-4 rounded-2xl border border-emerald-100 bg-white p-4 transition hover:border-emerald-700 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-emerald-700/20"
     >
       <div className="flex size-24 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-emerald-50">
-        <img src={URL.createObjectURL(diagnosis.blob)} alt={`Hoja con resultado ${label}`} className="size-full object-cover" />
+        {thumb ? (
+          <img src={thumb} alt={`Hoja con resultado ${label}`} className="size-full object-cover" />
+        ) : (
+          <Leaf className="size-8 text-emerald-700" aria-hidden="true" />
+        )}
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
           <h2 className="font-bold text-emerald-950">{label}</h2>
-          <SyncStatusBadge status={diagnosis.status} />
+          <SyncStatusBadge status={entry.status} />
         </div>
-        <p className="mt-1 text-sm font-semibold text-slate-700">{getDiagnosisOrigin(diagnosis.isDemo)}</p>
-        <p className="mt-1 text-sm text-slate-600">{new Date(diagnosis.createdAt).toLocaleDateString("es-PE", { dateStyle: "medium" })}</p>
-        <p className="mt-1 text-sm font-semibold text-slate-700">Confianza: {diagnosis.confidence}%</p>
+        <p className="mt-1 text-sm font-semibold text-slate-700">{getDiagnosisOrigin(entry.isDemo)}</p>
+        <p className="mt-1 text-sm text-slate-600">{new Date(entry.createdAt).toLocaleDateString("es-PE", { dateStyle: "medium" })}</p>
+        <p className="mt-1 text-sm font-semibold text-slate-700">Confianza: {entry.confidence}%</p>
+        {entry.lote ? <p className="mt-1 truncate text-sm text-slate-600">{entry.lote}</p> : null}
       </div>
       <ChevronRight className="shrink-0 text-emerald-700" aria-hidden="true" />
     </Link>
@@ -92,13 +116,37 @@ export function EmptyState() {
 }
 
 export function HistoryList() {
-  const [items, setItems] = useState<StoredDiagnosis[]>([])
+  const [items, setItems] = useState<HistoryEntry[]>([])
   const [filter, setFilter] = useState<"all" | DiagnosisKey>("all")
   const [page, setPage] = useState(1)
   const [loading, setLoading] = useState(true)
+  const [warning, setWarning] = useState("")
 
   useEffect(() => {
-    listDiagnoses().then(setItems).finally(() => setLoading(false))
+    let active = true
+    void (async () => {
+      setLoading(true)
+      setWarning("")
+      const local = (await listDiagnoses()).map(localDiagnosisToEntry)
+      let remote: HistoryEntry[] = []
+      try {
+        remote = (await fetchFotosHistorial()).map(remoteFotoToEntry)
+      } catch (cause) {
+        if (active) {
+          setWarning(
+            cause instanceof Error
+              ? `${cause.message} Mostrando solo lo guardado en este dispositivo.`
+              : "No se pudo cargar el historial remoto.",
+          )
+        }
+      }
+      if (!active) return
+      setItems(mergeHistoryEntries(remote, local))
+      setLoading(false)
+    })()
+    return () => {
+      active = false
+    }
   }, [])
 
   const filtered = useMemo(() => filterDiagnoses(items, filter), [items, filter])
@@ -111,8 +159,15 @@ export function HistoryList() {
         <header>
           <p className="text-sm font-semibold uppercase tracking-[0.16em] text-emerald-700">Café Guardián</p>
           <h1 className="mt-2 text-3xl font-bold text-emerald-950">{historyCopy.title}</h1>
-          <p className="mt-3 text-base leading-6 text-slate-600">{historyCopy.description}</p>
+          <p className="mt-3 text-base leading-6 text-slate-600">
+            Revisa tus diagnósticos guardados en la nube y los que quedaron offline en este dispositivo.
+          </p>
         </header>
+        {warning && (
+          <p role="status" className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">
+            {warning}
+          </p>
+        )}
         <ResultFilter value={filter} onChange={(value) => { setFilter(value); setPage(1) }} />
         {loading ? (
           <div className="flex flex-col gap-3" aria-label={historyCopy.loading}>
@@ -126,7 +181,7 @@ export function HistoryList() {
         ) : (
           <>
             <div className="flex flex-col gap-3">
-              {visible.map((item) => <HistoryCard key={item.id} diagnosis={item} />)}
+              {visible.map((item) => <HistoryCard key={item.id} entry={item} />)}
             </div>
             {hasMore && (
               <Button

@@ -27,3 +27,17 @@ export async function updateDiagnosisNote(id: string, note: string) {
   await db.put("diagnoses", updated)
   return updated
 }
+
+export async function deleteDiagnosis(id: string) {
+  const db = await openCafeGuardianDB()
+  await db.delete("diagnoses", id)
+}
+
+/** Borra locales ligados a una foto remota (photoId). */
+export async function deleteDiagnosesByPhotoId(photoId: string) {
+  const db = await openCafeGuardianDB()
+  const all = await db.getAll("diagnoses")
+  await Promise.all(
+    all.filter((item) => item.photoId === photoId).map((item) => db.delete("diagnoses", item.id)),
+  )
+}

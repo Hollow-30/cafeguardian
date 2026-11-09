@@ -19,6 +19,8 @@
 | `GET` | `/api/fotos/[id]/archivo` | binario (ACL) |
 | `DELETE` | `/api/fotos/[id]` | borra R2 + registro |
 
+El front (`/historial`, `/historial/[id]`) consume estas rutas y mezcla registros remotos con los offline de IndexedDB.
+
 ## Variables de entorno
 
 Preferidas (API S3 de R2):
