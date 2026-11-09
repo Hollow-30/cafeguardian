@@ -1,23 +1,37 @@
 "use client"
 
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { ArrowLeft, ArrowRight, Share2, Trash2, ZoomIn, ZoomOut } from "lucide-react"
 import { diagnosisCopy, getDiagnosisOrigin } from "@/content/diagnosis"
 import { historyCopy } from "@/content/history"
-import { getDiagnosis, listDiagnoses, updateDiagnosisNote, type StoredDiagnosis } from "@/lib/storage/diagnosesRepo"
+import { deleteFotoHistorial, fetchFotoHistorial, fetchFotosHistorial } from "@/lib/fotos/history-client"
+import {
+  localDiagnosisToEntry,
+  mergeHistoryEntries,
+  remoteFotoToEntry,
+  type HistoryEntry,
+} from "@/lib/historial/entries"
+import {
+  deleteDiagnosis,
+  deleteDiagnosesByPhotoId,
+  getDiagnosis,
+  listDiagnoses,
+  updateDiagnosisNote,
+} from "@/lib/storage/diagnosesRepo"
 
-export function diagnosisSummary(diagnosis: StoredDiagnosis) {
-  return `${getDiagnosisOrigin(diagnosis.isDemo)}. Diagnóstico: ${diagnosisCopy.labels[diagnosis.label]}. Confianza: ${diagnosis.confidence}%. Fecha: ${new Date(diagnosis.createdAt).toLocaleString("es-PE")}.`
+export function diagnosisSummary(entry: HistoryEntry) {
+  return `${getDiagnosisOrigin(entry.isDemo)}. Diagnóstico: ${diagnosisCopy.labels[entry.label]}. Confianza: ${entry.confidence}%. Fecha: ${new Date(entry.createdAt).toLocaleString("es-PE")}.`
 }
 
-export async function shareDiagnosis(diagnosis: StoredDiagnosis, imageUrl: string) {
-  const text = diagnosisSummary(diagnosis)
-  if (typeof navigator !== "undefined" && navigator.share) {
+export async function shareDiagnosis(entry: HistoryEntry, imageUrl: string) {
+  const text = diagnosisSummary(entry)
+  if (typeof navigator !== "undefined" && navigator.share && entry.blob) {
     await navigator.share({
       title: "Diagnóstico de hoja",
       text,
-      files: [new File([diagnosis.blob], "hoja.jpg", { type: diagnosis.blob.type })],
+      files: [new File([entry.blob], "hoja.jpg", { type: entry.blob.type || "image/jpeg" })],
     })
     return "shared" as const
   }
@@ -30,47 +44,117 @@ export async function shareDiagnosis(diagnosis: StoredDiagnosis, imageUrl: strin
 }
 
 export function DiagnosisDetail({ id }: { id: string }) {
-  const [diagnosis, setDiagnosis] = useState<StoredDiagnosis | null>(null)
-  const [all, setAll] = useState<StoredDiagnosis[]>([])
+  const router = useRouter()
+  const [entry, setEntry] = useState<HistoryEntry | null>(null)
+  const [all, setAll] = useState<HistoryEntry[]>([])
   const [note, setNote] = useState("")
   const [imageUrl, setImageUrl] = useState("")
   const [zoom, setZoom] = useState(1)
   const [shareMessage, setShareMessage] = useState("")
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState("")
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     let active = true
     let objectUrl = ""
-    void Promise.all([getDiagnosis(id), listDiagnoses()]).then(([item, items]) => {
-      if (!active) return
-      setDiagnosis(item ?? null)
-      setAll(items)
-      setNote(item?.note ?? "")
-      if (item) {
-        objectUrl = URL.createObjectURL(item.blob)
-        setImageUrl(objectUrl)
+
+    void (async () => {
+      setLoading(true)
+      const localRows = await listDiagnoses()
+      const localEntries = localRows.map(localDiagnosisToEntry)
+      let remoteEntries: HistoryEntry[] = []
+      try {
+        remoteEntries = (await fetchFotosHistorial()).map(remoteFotoToEntry)
+      } catch {
+        remoteEntries = []
       }
-    })
+      const merged = mergeHistoryEntries(remoteEntries, localEntries)
+      let current = merged.find((item) => item.id === id) ?? null
+
+      if (!current) {
+        try {
+          const remote = await fetchFotoHistorial(id)
+          current = remoteFotoToEntry(remote.item)
+        } catch {
+          current = null
+        }
+      }
+
+      if (!active) return
+      setAll(merged.length ? merged : current ? [current] : [])
+      setEntry(current)
+      setNote(current?.note ?? "")
+
+      if (current?.imageUrl) {
+        setImageUrl(current.imageUrl)
+      } else if (current?.blob) {
+        objectUrl = URL.createObjectURL(current.blob)
+        setImageUrl(objectUrl)
+      } else {
+        setImageUrl("")
+      }
+      setLoading(false)
+    })()
+
     return () => {
       active = false
       if (objectUrl) URL.revokeObjectURL(objectUrl)
     }
   }, [id])
 
-  const index = diagnosis ? all.findIndex((item) => item.id === diagnosis.id) : -1
+  const index = entry ? all.findIndex((item) => item.id === entry.id) : -1
   const previous = index > 0 ? all[index - 1] : undefined
   const next = index >= 0 && index < all.length - 1 ? all[index + 1] : undefined
-  const date = diagnosis
-    ? new Date(diagnosis.createdAt).toLocaleString("es-PE", { dateStyle: "medium", timeStyle: "short" })
+  const date = entry
+    ? new Date(entry.createdAt).toLocaleString("es-PE", { dateStyle: "medium", timeStyle: "short" })
     : ""
 
-  if (!diagnosis) {
+  async function persistNote(value: string) {
+    setNote(value)
+    const local = await getDiagnosis(id)
+    if (local) await updateDiagnosisNote(id, value)
+  }
+
+  async function removeEntry() {
+    if (!entry) return
+    setDeleting(true)
+    setDeleteError("")
+    try {
+      if (entry.remoteId) {
+        await deleteFotoHistorial(entry.remoteId)
+        await deleteDiagnosesByPhotoId(entry.remoteId)
+      }
+      if (entry.source === "local") {
+        await deleteDiagnosis(entry.id)
+      }
+      router.push("/historial")
+      router.refresh()
+    } catch (cause) {
+      setDeleteError(cause instanceof Error ? cause.message : "No se pudo eliminar.")
+      setDeleting(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-white px-4 py-8 text-slate-900">
+        <div className="mx-auto max-w-xl animate-pulse space-y-4">
+          <div className="h-8 w-40 rounded bg-emerald-50" />
+          <div className="h-64 rounded-2xl bg-emerald-50" />
+        </div>
+      </main>
+    )
+  }
+
+  if (!entry) {
     return (
       <main className="min-h-screen bg-white px-4 py-8 text-slate-900">
         <div className="mx-auto max-w-xl">
           <Link href="/historial" className="inline-flex min-h-12 items-center text-emerald-800 underline">Volver al historial</Link>
           <h1 className="mt-10 text-3xl font-bold text-emerald-950">Registro no encontrado</h1>
-          <p className="mt-3 text-lg text-slate-700">Este diagnóstico no está disponible en este teléfono.</p>
+          <p className="mt-3 text-lg text-slate-700">Este diagnóstico no está disponible o no tienes acceso.</p>
         </div>
       </main>
     )
@@ -85,28 +169,32 @@ export function DiagnosisDetail({ id }: { id: string }) {
         </Link>
         <h1 className="text-3xl font-bold text-emerald-950">Detalle del diagnóstico</h1>
         <div className="overflow-hidden rounded-2xl border border-emerald-100 bg-emerald-50 p-2">
-          <img
-            src={imageUrl}
-            alt={`Hoja con resultado ${diagnosisCopy.labels[diagnosis.label]}`}
-            className="max-h-[28rem] w-full object-contain transition-transform"
-            style={{ transform: `scale(${zoom})` }}
-          />
+          {imageUrl ? (
+            <img
+              src={imageUrl}
+              alt={`Hoja con resultado ${diagnosisCopy.labels[entry.label]}`}
+              className="max-h-[28rem] w-full object-contain transition-transform"
+              style={{ transform: `scale(${zoom})` }}
+            />
+          ) : (
+            <p className="p-8 text-center text-sm text-slate-600">Sin imagen disponible.</p>
+          )}
         </div>
         <div className="flex gap-3">
-          <button type="button" aria-label="Alejar imagen" className="min-h-12 rounded-xl border border-emerald-200 px-4 hover:bg-emerald-50" onClick={() => setZoom((value) => Math.max(1, value - .25))}>
+          <button type="button" aria-label="Alejar imagen" className="min-h-12 rounded-xl border border-emerald-200 px-4 hover:bg-emerald-50" onClick={() => setZoom((value) => Math.max(1, value - 0.25))}>
             <ZoomOut aria-hidden="true" />
           </button>
-          <button type="button" aria-label="Acercar imagen" className="min-h-12 rounded-xl border border-emerald-200 px-4 hover:bg-emerald-50" onClick={() => setZoom((value) => Math.min(2, value + .25))}>
+          <button type="button" aria-label="Acercar imagen" className="min-h-12 rounded-xl border border-emerald-200 px-4 hover:bg-emerald-50" onClick={() => setZoom((value) => Math.min(2, value + 0.25))}>
             <ZoomIn aria-hidden="true" />
           </button>
         </div>
         <section className="rounded-2xl border border-emerald-100 p-5">
-          <h2 className="text-2xl font-bold text-emerald-950">{diagnosisCopy.labels[diagnosis.label]}</h2>
-          <p className="mt-2 text-sm font-semibold">{getDiagnosisOrigin(diagnosis.isDemo)}</p>
-          <p className="mt-2 text-lg">Confianza: {diagnosis.confidence}%</p>
+          <h2 className="text-2xl font-bold text-emerald-950">{diagnosisCopy.labels[entry.label]}</h2>
+          <p className="mt-2 text-sm font-semibold">{getDiagnosisOrigin(entry.isDemo)}</p>
+          <p className="mt-2 text-lg">Confianza: {entry.confidence}%</p>
           <p className="mt-1 text-sm text-slate-600">{date}</p>
-          <p className="mt-1 text-sm text-slate-600">{diagnosis.status === "offline" ? historyCopy.offline : historyCopy.synced}</p>
-          {diagnosis.lote && <p className="mt-2 text-sm">Lote o parcela: {diagnosis.lote}</p>}
+          <p className="mt-1 text-sm text-slate-600">{entry.status === "offline" ? historyCopy.offline : historyCopy.synced}</p>
+          {entry.lote && <p className="mt-2 text-sm">Lote o parcela: {entry.lote}</p>}
         </section>
         <label className="flex flex-col gap-2 font-semibold" htmlFor="diagnosis-note">
           Nota personal
@@ -114,7 +202,7 @@ export function DiagnosisDetail({ id }: { id: string }) {
             id="diagnosis-note"
             value={note}
             onChange={(event) => setNote(event.target.value)}
-            onBlur={() => void updateDiagnosisNote(id, note)}
+            onBlur={() => void persistNote(note)}
             className="min-h-28 rounded-xl border border-emerald-200 p-3 font-normal outline-none focus:border-emerald-700 focus:ring-4 focus:ring-emerald-700/15"
             placeholder="Agrega una nota para recordar este registro"
           />
@@ -123,7 +211,7 @@ export function DiagnosisDetail({ id }: { id: string }) {
           <button
             type="button"
             className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-800 px-4 font-bold text-white hover:bg-emerald-900"
-            onClick={() => void shareDiagnosis(diagnosis, imageUrl).then((result) => setShareMessage(result === "fallback" ? "Imagen descargada y resumen copiado." : "Listo para compartir."))}
+            onClick={() => void shareDiagnosis(entry, imageUrl).then((result) => setShareMessage(result === "fallback" ? "Imagen descargada y resumen copiado." : "Listo para compartir."))}
           >
             <Share2 aria-hidden="true" />
             Compartir con mi técnico
@@ -141,10 +229,28 @@ export function DiagnosisDetail({ id }: { id: string }) {
         {confirmDelete && (
           <div role="dialog" aria-modal="true" className="rounded-xl border border-red-200 bg-red-50 p-4">
             <p className="font-semibold">¿Eliminar este registro?</p>
-            <p className="mt-1 text-sm">La eliminación completa estará disponible próximamente.</p>
-            <button type="button" className="mt-3 min-h-12 rounded-xl border border-red-300 px-4 hover:bg-white" onClick={() => setConfirmDelete(false)}>
-              Cerrar
-            </button>
+            <p className="mt-1 text-sm">
+              Se borrará{entry.remoteId ? " de la nube (R2) y" : ""} de este dispositivo.
+            </p>
+            {deleteError && <p role="alert" className="mt-2 text-sm text-red-800">{deleteError}</p>}
+            <div className="mt-3 flex flex-wrap gap-3">
+              <button
+                type="button"
+                disabled={deleting}
+                className="min-h-12 rounded-xl bg-red-800 px-4 font-semibold text-white hover:bg-red-900 disabled:opacity-60"
+                onClick={() => void removeEntry()}
+              >
+                {deleting ? "Eliminando…" : "Sí, eliminar"}
+              </button>
+              <button
+                type="button"
+                disabled={deleting}
+                className="min-h-12 rounded-xl border border-red-300 px-4 hover:bg-white"
+                onClick={() => setConfirmDelete(false)}
+              >
+                Cancelar
+              </button>
+            </div>
           </div>
         )}
         <nav aria-label="Navegar entre diagnósticos" className="flex justify-between gap-3 border-t border-emerald-100 pt-4">
