@@ -12,9 +12,11 @@ Se parte del modelo genérico de infección de hongos foliares de Magarey et al.
 
 SENAMHI publica su índice como **"producto experimental"**. El semáforo de la app es una guía, no un diagnóstico.
 
+**Aclaración (HU-21).** El artículo de Magarey et al. 2005 no incluye la roya del café (*Hemileia vastatrix*) ni define un índice de 0 a 1: solo estima las horas de hoja mojada que hacen falta para infectar. Los cortes 0.5 y 0.75 de los niveles son del producto de SENAMHI, no del artículo. La regla elegida para el índice está en `docs/semaforo/calculo-riesgo.md`.
+
 ## 3. Parámetros elegidos
 
-Rotulados **"SENAMHI, no los específicos de roya de Magarey"**. Son el punto de partida del plan del frente y no han sido contrastados con la fuente.
+Rotulados **"SENAMHI, no los específicos de roya de Magarey"** (el artículo no trae valores de la roya del café). Son el punto de partida del plan del frente y no han sido contrastados con la fuente.
 
 | Parámetro | Valor | Cómo se aplica | Estado |
 |---|---|---|---|
