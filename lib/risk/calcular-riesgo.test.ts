@@ -108,6 +108,21 @@ describe("calcularRiesgo: bordes", () => {
     expect(r.indice).toBe(1)
   })
 
+  it("9.96 mm no aplica la regla de lluvia aunque se muestre como 10", () => {
+    const horas = Array.from({ length: 24 }, (_, h) => hora(FECHA, h, { ...FAVORABLE, lluvia: 0.415 }))
+    const r = calcular(horas)
+    expect(r.detalle.lluviaDia).toBe(10)
+    expect(r.detalle.reglaLluviaAplicada).toBe(false)
+    expect(r.indice).toBe(1)
+  })
+
+  it("10 mm exactos sí aplican la regla de lluvia", () => {
+    const horas = Array.from({ length: 24 }, (_, h) => hora(FECHA, h, { ...FAVORABLE, lluvia: h < 20 ? 0.5 : 0 }))
+    const r = calcular(horas)
+    expect(r.detalle.reglaLluviaAplicada).toBe(true)
+    expect(r.indice).toBe(0)
+  })
+
   it("con aplicarReglaLluvia apagado, 21.7 mm ya no anulan el índice", () => {
     const horas = Array.from({ length: 24 }, (_, h) => hora(FECHA, h, { ...FAVORABLE, lluvia: h < 7 ? 3.1 : 0 }))
     expect(calcular(horas).indice).toBe(0)

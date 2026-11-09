@@ -87,8 +87,9 @@ export function calcularRiesgo(
     }
   }
 
+  // La regla compara con 2 decimales para no confundir 9.96 con 10; `lluviaDia` (1 decimal) es solo para mostrar.
   const lluviaDia = redondear(lluviaAcumulada, 1)
-  const reglaLluviaAplicada = parametros.aplicarReglaLluvia && lluviaDia >= parametros.lluviaDiariaMax
+  const reglaLluviaAplicada = parametros.aplicarReglaLluvia && redondear(lluviaAcumulada, 2) >= parametros.lluviaDiariaMax
   const detalle = {
     fecha,
     horasConDato,
