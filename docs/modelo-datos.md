@@ -14,6 +14,10 @@ auth.users
          └─ eventos (1:N)
 
 zonas_clima   (catálogo compartido con coordenadas; sin relación con profiles)
+   └─ riesgo_diario (1:N, semáforo por zona y fecha)
+
+clima_diario  (clima por hora de un punto de coordenadas y una fecha; sin clave foránea)
+cron_runs     (una fila por corrida de la descarga diaria)
 ```
 
 ## Tablas
@@ -23,6 +27,9 @@ zonas_clima   (catálogo compartido con coordenadas; sin relación con profiles)
 | `profiles` | Perfil de app ligado a Auth | `id`, `full_name`, `rol` |
 | `zonas` | Zona general de la finca (sin GPS exacto) | `distrito`, `centro_poblado`, `etiqueta`, `gps_aproximado` |
 | `zonas_clima` | Catálogo compartido de zonas con coordenadas para el clima | `nombre`, `distrito`, `centro_poblado`, `latitud`, `longitud`, `coordenada_verificada`, `activo` |
+| `clima_diario` | Clima por hora (48 h) de un punto, con fuente y fecha de descarga | `latitud`, `longitud`, `fecha`, `horas`, `fuente`, `descargado_en` |
+| `riesgo_diario` | Semáforo calculado por zona del catálogo y fecha | `zona_clima_id`, `fecha`, `nivel`, `indice`, `motivo`, `detalle` |
+| `cron_runs` | Registro de cada corrida de la descarga diaria | `inicio`, `fin`, `estado`, `zonas_ok`, `zonas_con_error`, `detalle` |
 | `fotos` | Observación fotográfica en R2 + historial | `storage_path`, `content_type`, `byte_size`, `resultado_etiqueta`, `confianza`, `semaforo_dia`, `semaforo_fecha` |
 | `resultados` | Salida de diagnóstico o semáforo | `tipo`, `etiqueta`, `confianza`, `detalle` |
 | `planes` | Catálogo de planes | `codigo`, `nombre`, `dias_duracion` |
@@ -36,6 +43,7 @@ zonas_clima   (catálogo compartido con coordenadas; sin relación con profiles)
 - El rol de autorización sigue viviendo en `auth.users.raw_app_meta_data.role`.
 - `profiles.rol` es un espejo para consultas; el registro público no puede elevarlo a Superadministrador.
 - `zonas_clima`: cualquier usuario con sesión la lee; solo el Superadministrador la escribe.
+- `riesgo_diario`: cualquier usuario con sesión la lee. `clima_diario` y `cron_runs`: solo las lee el Superadministrador. Las tres no tienen políticas de escritura: las escribe la descarga diaria con la clave de servicio (que se salta RLS).
 
 ## Migraciones reproducibles
 
@@ -45,7 +53,8 @@ Orden:
 2. `supabase/migrations/20261102_core_data_model.sql`
 3. `supabase/migrations/20261102_fotos_historial_r2.sql`
 4. `supabase/migrations/20261107_zonas_clima.sql`
-5. `supabase/seed.sql` (datos ficticios y catálogo de zonas)
+5. `supabase/migrations/20261111_clima_riesgo_cron.sql` (CAFG-111; necesita las anteriores)
+6. `supabase/seed.sql` (datos ficticios y catálogo de zonas)
 
 ## Fotos en Cloudflare R2
 
@@ -61,6 +70,7 @@ psql "$POSTGRES_URL_NON_POOLING" -v ON_ERROR_STOP=1 -f supabase/migrations/20261
 psql "$POSTGRES_URL_NON_POOLING" -v ON_ERROR_STOP=1 -f supabase/migrations/20261102_core_data_model.sql
 psql "$POSTGRES_URL_NON_POOLING" -v ON_ERROR_STOP=1 -f supabase/migrations/20261102_fotos_historial_r2.sql
 psql "$POSTGRES_URL_NON_POOLING" -v ON_ERROR_STOP=1 -f supabase/migrations/20261107_zonas_clima.sql
+psql "$POSTGRES_URL_NON_POOLING" -v ON_ERROR_STOP=1 -f supabase/migrations/20261111_clima_riesgo_cron.sql
 psql "$POSTGRES_URL_NON_POOLING" -v ON_ERROR_STOP=1 -f supabase/seed.sql
 ```
 
@@ -123,6 +133,31 @@ set local role authenticated;
 select set_config('request.jwt.claims', '{"role":"authenticated","app_metadata":{"role":"superadministrador"}}', true);
 update public.zonas_clima set activo = activo where nombre = 'Saposoa';
 rollback;
+```
+
+## Clima, semáforo y corridas (CAFG-111)
+
+Las llena la descarga diaria; el detalle de cómo funciona está en [`docs/semaforo/descarga-clima.md`](semaforo/descarga-clima.md).
+
+- `clima_diario`: una fila por punto (`latitud`, `longitud`) y `fecha`. `horas` guarda las 48 horas (ayer y hoy en hora de Lima) en formato JSON, con la `fuente` (`open-meteo`) y cuándo se descargó. Única por `(latitud, longitud, fecha)`.
+- `riesgo_diario`: una fila por zona del catálogo y `fecha`, con `nivel`, `indice` (0 a 1), `motivo` y `detalle`. Única por `(zona_clima_id, fecha)`. Si no hubo datos suficientes no se escribe fila, así que no existen filas sin nivel.
+- `cron_runs`: una fila por corrida (`en_curso`, `ok`, `parcial` o `error`), con cuántas zonas salieron bien o con error y el detalle por punto.
+
+### Comprobar sin tocar datos
+
+Otra persona con acceso a la base puede correr esto con `psql`; solo lee.
+
+```sql
+-- Esperado: 3 filas, todas con relrowsecurity = true
+select relname, relrowsecurity from pg_class
+where oid in ('public.clima_diario'::regclass, 'public.riesgo_diario'::regclass, 'public.cron_runs'::regclass);
+
+-- Esperado: riesgo_diario_select_authenticated, clima_diario_select_admin, cron_runs_select_admin (solo select)
+select tablename, policyname, cmd from pg_policies
+where tablename in ('clima_diario', 'riesgo_diario', 'cron_runs') order by tablename;
+
+-- Después de la primera corrida: última corrida y su estado
+select inicio, fin, estado, zonas_ok, zonas_con_error from public.cron_runs order by inicio desc limit 5;
 ```
 
 ## Datos de prueba
