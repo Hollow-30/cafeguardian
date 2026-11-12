@@ -7,7 +7,7 @@ export const metadata = {
 
 export default function SupportPage() {
   return (
-    <main className="min-h-screen bg-[#f7faf8] px-4 py-10 text-slate-900 sm:px-6">
+    <main className="min-h-screen bg-[#faf7f4] px-4 py-10 text-slate-900 sm:px-6">
       <div className="mx-auto max-w-5xl">
         <Soporte />
       </div>

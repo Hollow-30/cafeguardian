@@ -141,8 +141,8 @@ export function DiagnosisDetail({ id }: { id: string }) {
     return (
       <main className="min-h-screen bg-white px-4 py-8 text-slate-900">
         <div className="mx-auto max-w-xl animate-pulse space-y-4">
-          <div className="h-8 w-40 rounded bg-emerald-50" />
-          <div className="h-64 rounded-2xl bg-emerald-50" />
+          <div className="h-8 w-40 rounded bg-coffee-50" />
+          <div className="h-64 rounded-2xl bg-coffee-50" />
         </div>
       </main>
     )
@@ -152,8 +152,8 @@ export function DiagnosisDetail({ id }: { id: string }) {
     return (
       <main className="min-h-screen bg-white px-4 py-8 text-slate-900">
         <div className="mx-auto max-w-xl">
-          <Link href="/historial" className="inline-flex min-h-12 items-center text-emerald-800 underline">Volver al historial</Link>
-          <h1 className="mt-10 text-3xl font-bold text-emerald-950">Registro no encontrado</h1>
+          <Link href="/historial" className="inline-flex min-h-12 items-center text-coffee-800 underline">Volver al historial</Link>
+          <h1 className="mt-10 text-3xl font-bold text-coffee-950">Registro no encontrado</h1>
           <p className="mt-3 text-lg text-slate-700">Este diagnóstico no está disponible o no tienes acceso.</p>
         </div>
       </main>
@@ -163,12 +163,12 @@ export function DiagnosisDetail({ id }: { id: string }) {
   return (
     <main className="min-h-screen bg-white px-4 py-6 text-slate-900 sm:px-6">
       <article className="mx-auto flex max-w-xl flex-col gap-5">
-        <Link href="/historial" className="inline-flex min-h-12 items-center gap-2 text-emerald-800 underline">
+        <Link href="/historial" className="inline-flex min-h-12 items-center gap-2 text-coffee-800 underline">
           <ArrowLeft aria-hidden="true" />
           Historial
         </Link>
-        <h1 className="text-3xl font-bold text-emerald-950">Detalle del diagnóstico</h1>
-        <div className="overflow-hidden rounded-2xl border border-emerald-100 bg-emerald-50 p-2">
+        <h1 className="text-3xl font-bold text-coffee-950">Detalle del diagnóstico</h1>
+        <div className="overflow-hidden rounded-2xl border border-coffee-100 bg-coffee-50 p-2">
           {imageUrl ? (
             <img
               src={imageUrl}
@@ -181,15 +181,15 @@ export function DiagnosisDetail({ id }: { id: string }) {
           )}
         </div>
         <div className="flex gap-3">
-          <button type="button" aria-label="Alejar imagen" className="min-h-12 rounded-xl border border-emerald-200 px-4 hover:bg-emerald-50" onClick={() => setZoom((value) => Math.max(1, value - 0.25))}>
+          <button type="button" aria-label="Alejar imagen" className="min-h-12 rounded-xl border border-coffee-200 px-4 hover:bg-coffee-50" onClick={() => setZoom((value) => Math.max(1, value - 0.25))}>
             <ZoomOut aria-hidden="true" />
           </button>
-          <button type="button" aria-label="Acercar imagen" className="min-h-12 rounded-xl border border-emerald-200 px-4 hover:bg-emerald-50" onClick={() => setZoom((value) => Math.min(2, value + 0.25))}>
+          <button type="button" aria-label="Acercar imagen" className="min-h-12 rounded-xl border border-coffee-200 px-4 hover:bg-coffee-50" onClick={() => setZoom((value) => Math.min(2, value + 0.25))}>
             <ZoomIn aria-hidden="true" />
           </button>
         </div>
-        <section className="rounded-2xl border border-emerald-100 p-5">
-          <h2 className="text-2xl font-bold text-emerald-950">{diagnosisCopy.labels[entry.label]}</h2>
+        <section className="rounded-2xl border border-coffee-100 p-5">
+          <h2 className="text-2xl font-bold text-coffee-950">{diagnosisCopy.labels[entry.label]}</h2>
           <p className="mt-2 text-sm font-semibold">{getDiagnosisOrigin(entry.isDemo)}</p>
           <p className="mt-2 text-lg">Confianza: {entry.confidence}%</p>
           <p className="mt-1 text-sm text-slate-600">{date}</p>
@@ -203,14 +203,14 @@ export function DiagnosisDetail({ id }: { id: string }) {
             value={note}
             onChange={(event) => setNote(event.target.value)}
             onBlur={() => void persistNote(note)}
-            className="min-h-28 rounded-xl border border-emerald-200 p-3 font-normal outline-none focus:border-emerald-700 focus:ring-4 focus:ring-emerald-700/15"
+            className="min-h-28 rounded-xl border border-coffee-200 p-3 font-normal outline-none focus:border-coffee-700 focus:ring-4 focus:ring-coffee-700/15"
             placeholder="Agrega una nota para recordar este registro"
           />
         </label>
         <div className="flex flex-col gap-3 sm:flex-row">
           <button
             type="button"
-            className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-800 px-4 font-bold text-white hover:bg-emerald-900"
+            className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-coffee-800 px-4 font-bold text-white hover:bg-coffee-900"
             onClick={() => void shareDiagnosis(entry, imageUrl).then((result) => setShareMessage(result === "fallback" ? "Imagen descargada y resumen copiado." : "Listo para compartir."))}
           >
             <Share2 aria-hidden="true" />
@@ -218,26 +218,26 @@ export function DiagnosisDetail({ id }: { id: string }) {
           </button>
           <button
             type="button"
-            className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-red-700 px-4 font-bold text-red-800 hover:bg-red-50"
+            className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-coffee-700 px-4 font-bold text-coffee-800 hover:bg-coffee-50"
             onClick={() => setConfirmDelete(true)}
           >
             <Trash2 aria-hidden="true" />
             Eliminar registro
           </button>
         </div>
-        {shareMessage && <p role="status" className="text-sm text-green-800">{shareMessage}</p>}
+        {shareMessage && <p role="status" className="text-sm text-coffee-800">{shareMessage}</p>}
         {confirmDelete && (
-          <div role="dialog" aria-modal="true" className="rounded-xl border border-red-200 bg-red-50 p-4">
+          <div role="dialog" aria-modal="true" className="rounded-xl border border-coffee-200 bg-coffee-50 p-4">
             <p className="font-semibold">¿Eliminar este registro?</p>
             <p className="mt-1 text-sm">
               Se borrará{entry.remoteId ? " de la nube (R2) y" : ""} de este dispositivo.
             </p>
-            {deleteError && <p role="alert" className="mt-2 text-sm text-red-800">{deleteError}</p>}
+            {deleteError && <p role="alert" className="mt-2 text-sm text-coffee-800">{deleteError}</p>}
             <div className="mt-3 flex flex-wrap gap-3">
               <button
                 type="button"
                 disabled={deleting}
-                className="min-h-12 rounded-xl bg-red-800 px-4 font-semibold text-white hover:bg-red-900 disabled:opacity-60"
+                className="min-h-12 rounded-xl bg-coffee-800 px-4 font-semibold text-white hover:bg-coffee-900 disabled:opacity-60"
                 onClick={() => void removeEntry()}
               >
                 {deleting ? "Eliminando…" : "Sí, eliminar"}
@@ -245,7 +245,7 @@ export function DiagnosisDetail({ id }: { id: string }) {
               <button
                 type="button"
                 disabled={deleting}
-                className="min-h-12 rounded-xl border border-red-300 px-4 hover:bg-white"
+                className="min-h-12 rounded-xl border border-coffee-300 px-4 hover:bg-white"
                 onClick={() => setConfirmDelete(false)}
               >
                 Cancelar
@@ -253,12 +253,12 @@ export function DiagnosisDetail({ id }: { id: string }) {
             </div>
           </div>
         )}
-        <nav aria-label="Navegar entre diagnósticos" className="flex justify-between gap-3 border-t border-emerald-100 pt-4">
-          <Link aria-disabled={!previous} className={`inline-flex min-h-12 items-center gap-2 ${previous ? "text-emerald-800 underline" : "pointer-events-none text-slate-400"}`} href={previous ? `/historial/${previous.id}` : "#"}>
+        <nav aria-label="Navegar entre diagnósticos" className="flex justify-between gap-3 border-t border-coffee-100 pt-4">
+          <Link aria-disabled={!previous} className={`inline-flex min-h-12 items-center gap-2 ${previous ? "text-coffee-800 underline" : "pointer-events-none text-slate-400"}`} href={previous ? `/historial/${previous.id}` : "#"}>
             <ArrowLeft aria-hidden="true" />
             Anterior
           </Link>
-          <Link aria-disabled={!next} className={`inline-flex min-h-12 items-center gap-2 ${next ? "text-emerald-800 underline" : "pointer-events-none text-slate-400"}`} href={next ? `/historial/${next.id}` : "#"}>
+          <Link aria-disabled={!next} className={`inline-flex min-h-12 items-center gap-2 ${next ? "text-coffee-800 underline" : "pointer-events-none text-slate-400"}`} href={next ? `/historial/${next.id}` : "#"}>
             Siguiente
             <ArrowRight aria-hidden="true" />
           </Link>

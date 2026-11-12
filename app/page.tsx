@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation"
+import { LandingPage } from "@/components/landing-page"
 import { FarmerHome } from "@/components/farmer-home"
 import { postLoginPath, resolveRole } from "@/lib/auth/roles"
 import { getAuthUser } from "@/lib/auth/session"
@@ -6,7 +7,7 @@ import { getAuthUser } from "@/lib/auth/session"
 export default async function Page() {
   const user = await getAuthUser()
 
-  if (!user) redirect("/login")
+  if (!user) return <LandingPage />
 
   const role = resolveRole(user)
   if (role === "superadministrador") redirect(postLoginPath(role))

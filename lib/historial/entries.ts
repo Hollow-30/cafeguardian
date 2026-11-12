@@ -6,7 +6,7 @@ export type HistoryEntry = {
   id: string
   label: DiagnosisKey
   confidence: number
-  isDemo: boolean
+  isDemo: boolean | undefined
   status: "offline" | "synced"
   createdAt: string
   lote: string
@@ -51,7 +51,7 @@ export function localDiagnosisToEntry(diagnosis: StoredDiagnosis): HistoryEntry 
     id: diagnosis.id,
     label: diagnosis.label,
     confidence: confidenceToPercent(diagnosis.confidence),
-    isDemo: diagnosis.isDemo === true,
+    isDemo: diagnosis.isDemo,
     status: diagnosis.status,
     createdAt: diagnosis.createdAt,
     lote: diagnosis.lote,

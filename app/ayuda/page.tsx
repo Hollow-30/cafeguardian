@@ -26,16 +26,16 @@ const answers = [
 
 export default function HelpPage() {
   return (
-    <main className="min-h-screen bg-[#f7faf8] px-4 py-10 text-slate-900 sm:px-6">
+    <main className="min-h-screen bg-[#faf7f4] px-4 py-10 text-slate-900 sm:px-6">
       <div className="mx-auto max-w-3xl">
         <div className="mb-6 flex items-center gap-3">
-          <span className="flex size-11 items-center justify-center rounded-xl bg-emerald-100 text-emerald-800"><CircleHelp className="size-6" aria-hidden="true" /></span>
-          <div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700">Ayuda</p><h1 className="mt-1 text-3xl font-semibold text-emerald-950">Centro de ayuda</h1></div>
+          <span className="flex size-11 items-center justify-center rounded-xl bg-coffee-100 text-coffee-800"><CircleHelp className="size-6" aria-hidden="true" /></span>
+          <div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-coffee-700">Ayuda</p><h1 className="mt-1 text-3xl font-semibold text-coffee-950">Centro de ayuda</h1></div>
         </div>
-        <div className="divide-y divide-emerald-100 rounded-2xl border border-emerald-100 bg-white px-5 shadow-sm">
+        <div className="divide-y divide-coffee-100 rounded-2xl border border-coffee-100 bg-white px-5 shadow-sm">
           {answers.map(({ question, answer }) => (
             <section key={question} className="py-5">
-              <h2 className="font-semibold text-emerald-950">{question}</h2>
+              <h2 className="font-semibold text-coffee-950">{question}</h2>
               <p className="mt-2 text-sm leading-6 text-slate-600">{answer}</p>
             </section>
           ))}

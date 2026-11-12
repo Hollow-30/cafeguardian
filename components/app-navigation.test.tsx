@@ -36,8 +36,9 @@ describe("AppNavigation", () => {
   it("ofrece navegación a las funcionalidades de una sesión y marca la sección activa", () => {
     render(<AppNavigation role="superadministrador" user={{ email: "ana@example.com", user_metadata: { full_name: "Ana" } }} />)
 
-    expect(screen.getByRole("link", { name: "Nuevo diagnóstico" })).toHaveAttribute("href", "/diagnostico/nuevo")
+    expect(screen.getByRole("link", { name: "Inicio" })).toHaveAttribute("href", "/")
     expect(screen.getByRole("link", { name: "Historial" })).toHaveAttribute("aria-current", "page")
+    fireEvent.click(screen.getByRole("button", { name: "Abrir menú de usuario" }))
     expect(screen.getByRole("link", { name: "Planes" })).toHaveAttribute("href", "/planes")
     expect(screen.getByRole("link", { name: "Mis pagos" })).toHaveAttribute("href", "/mis-pagos")
     expect(screen.getByRole("link", { name: "Panel del equipo" })).toHaveAttribute("href", "/panel")
@@ -52,13 +53,14 @@ describe("AppNavigation", () => {
 
     expect(screen.getByText("ana@example.com")).toBeInTheDocument()
     expect(screen.getByRole("link", { name: "Mi cuenta" })).toHaveAttribute("href", "/account")
-    expect(screen.getByRole("link", { name: "Mejorar plan" })).toHaveAttribute("href", "/planes")
+    expect(screen.getByRole("link", { name: "Planes" })).toHaveAttribute("href", "/planes")
     expect(screen.getByRole("link", { name: "Contacto" })).toHaveAttribute("href", "/contacto")
     expect(screen.getByRole("link", { name: "Soporte" })).toHaveAttribute("href", "/soporte")
     expect(screen.getByRole("link", { name: "Centro de ayuda" })).toHaveAttribute("href", "/ayuda")
 
     fireEvent.keyDown(document, { key: "Escape" })
     expect(screen.queryByRole("link", { name: "Mi cuenta" })).not.toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "Abrir menú de usuario" })).toHaveFocus()
   })
 
   it("cierra el menú al hacer clic fuera", () => {

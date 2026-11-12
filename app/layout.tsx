@@ -3,29 +3,27 @@ import type { Metadata, Viewport } from 'next'
 import { AppNavigation } from '@/components/app-navigation'
 import { resolveRole } from '@/lib/auth/roles'
 import { getAuthUser } from '@/lib/auth/session'
+import { brand } from '@/content/brand'
 import './globals.css'
 
+
 export const metadata: Metadata = {
-  title: 'Café Guardián — Panel del Caficultor',
-  description: 'Diagnóstico y alertas tempranas de roya del café para caficultores de Saposoa.',
-  generator: 'v0.app',
+  title: brand.metadata.title,
+  description: brand.metadata.description,
   icons: {
     icon: [
-      {
-        url: '/icon-light-32x32.png',
-      },
       {
         url: '/icon.svg',
         type: 'image/svg+xml',
       },
     ],
-    apple: '/apple-icon.png',
+    apple: '/icon.svg',
   },
 }
 
 export const viewport: Viewport = {
   colorScheme: 'light',
-  themeColor: '#f7faf8',
+  themeColor: '#4A2E1E',
 }
 
 export default async function RootLayout({

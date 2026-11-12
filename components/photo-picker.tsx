@@ -18,12 +18,12 @@ type PhotoPickerProps = { onBack?: () => void; onSaved?: (id: string) => void }
 
 export function CaptureTips() {
   return (
-    <section aria-labelledby="tips-title" className="rounded-2xl bg-emerald-50 p-5">
-      <h2 id="tips-title" className="text-sm font-semibold text-emerald-950">{photoCopy.tipsTitle}</h2>
-      <ul className="mt-3 grid gap-2 text-sm text-emerald-900/80 sm:grid-cols-3">
+    <section aria-labelledby="tips-title" className="rounded-2xl bg-coffee-50 p-5">
+      <h2 id="tips-title" className="text-sm font-semibold text-coffee-950">{photoCopy.tipsTitle}</h2>
+      <ul className="mt-3 grid gap-2 text-sm text-coffee-900/80 sm:grid-cols-3">
         {photoCopy.tips.map((tip) => (
           <li key={tip} className="flex items-center gap-2">
-            <CheckCircle2 className="size-4 text-emerald-700" aria-hidden="true" />
+            <CheckCircle2 className="size-4 text-coffee-700" aria-hidden="true" />
             {tip}
           </li>
         ))}
@@ -35,8 +35,8 @@ export function CaptureTips() {
 export function ProcessingState() {
   return (
     <div role="status" aria-live="polite" className="flex min-h-64 flex-col items-center justify-center gap-4 text-center">
-      <LoaderCircle className="size-12 animate-spin text-emerald-700" aria-hidden="true" />
-      <h2 className="text-xl font-semibold text-emerald-950">{photoCopy.processing}</h2>
+      <LoaderCircle className="size-12 animate-spin text-coffee-700" aria-hidden="true" />
+      <h2 className="text-xl font-semibold text-coffee-950">{photoCopy.processing}</h2>
       <p className="text-sm text-slate-600">Enviamos la foto para analizarla. Necesitas conexión a internet.</p>
     </div>
   )
@@ -57,25 +57,25 @@ export function PhotoPreview({
 }) {
   return (
     <div className="flex flex-col gap-5">
-      <div className="overflow-hidden rounded-2xl border border-emerald-100 bg-emerald-50">
+      <div className="overflow-hidden rounded-2xl border border-coffee-100 bg-coffee-50">
         <img src={src} alt="Previsualización de la hoja seleccionada" className="mx-auto max-h-[360px] w-full object-contain" />
       </div>
-      <label className="flex flex-col gap-2 text-sm font-semibold text-emerald-950" htmlFor="lote">
+      <label className="flex flex-col gap-2 text-sm font-semibold text-coffee-950" htmlFor="lote">
         {photoCopy.loteLabel}
         <input
           id="lote"
           value={lote}
           onChange={(event) => onLoteChange(event.target.value)}
           placeholder={photoCopy.lotePlaceholder}
-          className="h-12 rounded-xl border border-slate-300 px-4 font-normal outline-none focus:border-emerald-700 focus:ring-4 focus:ring-emerald-700/20"
+          className="h-12 rounded-xl border border-slate-300 px-4 font-normal outline-none focus:border-coffee-700 focus:ring-4 focus:ring-coffee-700/20"
         />
       </label>
       <div className="grid gap-3 sm:grid-cols-2">
-        <Button type="button" size="lg" onClick={onUse} className="h-12 bg-emerald-800 hover:bg-emerald-900">
+        <Button type="button" size="lg" onClick={onUse} className="h-12 bg-coffee-800 hover:bg-coffee-900">
           <Upload data-icon="inline-start" />
           {photoCopy.usePhoto}
         </Button>
-        <Button type="button" size="lg" variant="outline" onClick={onRepeat} className="h-12 border-emerald-700 text-emerald-900">
+        <Button type="button" size="lg" variant="outline" onClick={onRepeat} className="h-12 border-coffee-700 text-coffee-900">
           <RotateCcw data-icon="inline-start" />
           {photoCopy.repeat}
         </Button>
@@ -209,27 +209,27 @@ export function PhotoPicker({ onBack, onSaved }: PhotoPickerProps) {
     <main className="min-h-screen bg-white px-4 py-8 text-slate-900 sm:px-6">
       <div className="mx-auto flex w-full max-w-xl flex-col gap-6">
         {onBack && (
-          <Button type="button" variant="ghost" onClick={onBack} className="w-fit text-emerald-900">
+          <Button type="button" variant="ghost" onClick={onBack} className="w-fit text-coffee-900">
             <ArrowLeft data-icon="inline-start" />
             Volver al panel
           </Button>
         )}
         <header>
-          <p className="text-sm font-semibold uppercase tracking-[0.16em] text-emerald-700">{photoCopy.eyebrow}</p>
-          <h1 className="mt-2 text-3xl font-bold text-emerald-950">{step === "result" ? "Resultado de la hoja" : photoCopy.title}</h1>
+          <p className="text-sm font-semibold uppercase tracking-[0.16em] text-coffee-700">{photoCopy.eyebrow}</p>
+          <h1 className="mt-2 text-3xl font-bold text-coffee-950">{step === "result" ? "Resultado de la hoja" : photoCopy.title}</h1>
           <p className="mt-3 text-base leading-6 text-slate-600">
             {step === "result" ? "Revisa esta orientación antes de guardar el diagnóstico." : photoCopy.description}
           </p>
         </header>
-        {error && <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">{error}</div>}
+        {error && <div role="alert" className="rounded-xl border border-coffee-200 bg-coffee-50 p-4 text-sm text-coffee-800">{error}</div>}
         {step === "choose" && (
           <>
             <div className="grid gap-4">
-              <Button type="button" size="lg" onClick={() => cameraRef.current?.click()} className="h-16 justify-start gap-4 bg-emerald-800 px-5 text-lg hover:bg-emerald-900">
+              <Button type="button" size="lg" onClick={() => cameraRef.current?.click()} className="h-16 justify-start gap-4 bg-coffee-800 px-5 text-lg hover:bg-coffee-900">
                 <Camera data-icon="inline-start" />
                 {photoCopy.camera}
               </Button>
-              <Button type="button" size="lg" variant="outline" onClick={() => galleryRef.current?.click()} className="h-16 justify-start gap-4 border-2 border-emerald-700 px-5 text-lg text-emerald-950 hover:bg-emerald-50">
+              <Button type="button" size="lg" variant="outline" onClick={() => galleryRef.current?.click()} className="h-16 justify-start gap-4 border-2 border-coffee-700 px-5 text-lg text-coffee-950 hover:bg-coffee-50">
                 <ImageIcon data-icon="inline-start" />
                 {photoCopy.gallery}
               </Button>
@@ -271,18 +271,18 @@ export function PhotoPicker({ onBack, onSaved }: PhotoPickerProps) {
           />
         )}
         {step === "saved" && (
-          <section className="flex min-h-64 flex-col items-center justify-center gap-4 rounded-2xl border border-green-200 bg-green-50 p-6 text-center">
-            <CheckCircle2 className="size-12 text-green-700" aria-hidden="true" />
-            <h2 className="text-xl font-semibold text-emerald-950">
+          <section className="flex min-h-64 flex-col items-center justify-center gap-4 rounded-2xl border border-coffee-200 bg-coffee-50 p-6 text-center">
+            <CheckCircle2 className="size-12 text-coffee-700" aria-hidden="true" />
+            <h2 className="text-xl font-semibold text-coffee-950">
               {savedRemotely
                 ? "Diagnóstico y foto guardados en tu historial."
                 : "Diagnóstico guardado en este dispositivo."}
             </h2>
             <div className="flex flex-wrap justify-center gap-3">
-              <Link href="/historial" className="inline-flex h-12 items-center justify-center rounded-xl bg-emerald-800 px-5 font-semibold text-white hover:bg-emerald-900">
+              <Link href="/historial" className="inline-flex h-12 items-center justify-center rounded-xl bg-coffee-800 px-5 font-semibold text-white hover:bg-coffee-900">
                 Ver historial
               </Link>
-              <Button type="button" size="lg" variant="outline" onClick={reset} className="h-12 border-emerald-700 text-emerald-900">
+              <Button type="button" size="lg" variant="outline" onClick={reset} className="h-12 border-coffee-700 text-coffee-900">
                 Subir otra foto
               </Button>
             </div>
