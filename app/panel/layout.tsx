@@ -17,23 +17,23 @@ export default async function PanelLayout({ children }: { children: React.ReactN
   }
 
   return (
-    <div className="min-h-screen bg-[#f7faf8] text-slate-900">
-      <header className="border-b border-emerald-950/10 bg-white">
+    <div className="min-h-screen bg-[#faf7f4] text-slate-900">
+      <header className="border-b border-coffee-950/10 bg-white">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4 sm:px-8">
           <div className="flex items-center gap-3">
-            <div className="flex size-10 items-center justify-center rounded-xl bg-emerald-800 text-white">
+            <div className="flex size-10 items-center justify-center rounded-xl bg-coffee-800 text-white">
               <Sprout className="size-5" />
             </div>
             <div>
-              <p className="font-bold tracking-tight text-emerald-950">Café Guardián</p>
+              <p className="font-bold tracking-tight text-coffee-950">Café Guardián</p>
               <p className="text-xs text-slate-500">Panel del Superadministrador</p>
             </div>
           </div>
-          <nav className="flex items-center gap-5 text-sm font-semibold text-emerald-900">
-            <Link href="/panel" className="hover:text-emerald-950">
+          <nav className="flex items-center gap-5 text-sm font-semibold text-coffee-900">
+            <Link href="/panel" className="hover:text-coffee-950">
               Resumen
             </Link>
-            <Link href="/panel/equipo" className="hover:text-emerald-950">
+            <Link href="/panel/equipo" className="hover:text-coffee-950">
               Usuarios
             </Link>
           </nav>

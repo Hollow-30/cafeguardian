@@ -1,6 +1,7 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 @import 'shadcn/tailwind.css';
+@import './brand.css';
 
 @custom-variant dark (&:is(.dark *));
 
@@ -53,7 +54,7 @@
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.448 0.11 151.2);
+  --primary: #4a2e1e;
   --primary-foreground: oklch(0.985 0.002 247);
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
@@ -61,10 +62,10 @@
   --muted-foreground: oklch(0.556 0 0);
   --accent: oklch(0.97 0 0);
   --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
+  --destructive: #794326;
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
-  --ring: oklch(0.55 0.12 151.2);
+  --ring: #97502b;
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
@@ -92,6 +93,6 @@
 
 @layer components {
   .input {
-    @apply h-12 w-full rounded-2xl border border-slate-200 bg-[#fbfefc] px-4 text-sm text-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] outline-none transition placeholder:text-slate-400 hover:border-emerald-700/30 focus:border-emerald-600 focus:bg-white focus:ring-4 focus:ring-emerald-600/10;
+    @apply h-12 w-full rounded-2xl border border-slate-200 bg-[#faf7f4] px-4 text-base text-coffee-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] outline-none transition placeholder:text-coffee-700 hover:border-coffee-700/30 focus:border-coffee-600 focus:bg-white focus:ring-4 focus:ring-coffee-600/10;
   }
 }
