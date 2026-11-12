@@ -54,6 +54,7 @@ describe("GET /api/cron/risk", () => {
   })
 
   afterEach(() => {
+    vi.useRealTimers()
     vi.unstubAllEnvs()
     vi.restoreAllMocks()
   })
@@ -92,6 +93,9 @@ describe("GET /api/cron/risk", () => {
   })
 
   it("camino feliz: descarga, guarda y responde con el contrato", async () => {
+    // La respuesta simulada trae horas del 10 y 11 de noviembre: se fija "ahora" para que la prueba no dependa del día en que corre.
+    vi.useFakeTimers({ toFake: ["Date"] })
+    vi.setSystemTime(new Date("2026-11-11T11:00:00Z"))
     const almacen = almacenFalso()
     createAdminClient.mockReturnValue({})
     crearAlmacenSupabase.mockReturnValue(almacen)
@@ -101,7 +105,7 @@ describe("GET /api/cron/risk", () => {
 
     expect(respuesta.status).toBe(200)
     expect(cuerpo).toMatchObject({ run_id: "run-1", status: "ok", zones_ok: 1, zones_failed: 0 })
-    expect(cuerpo.date).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+    expect(cuerpo.date).toBe("2026-11-11")
     expect(fetchEspia).toHaveBeenCalledTimes(1)
     expect(almacen.guardarClima).toHaveBeenCalledTimes(1)
     expect(almacen.guardarRiesgo).toHaveBeenCalledTimes(1)
