@@ -27,16 +27,26 @@ export function authorizePanelAccess(user: AuthUserLike): PanelAccess {
   return { ok: true }
 }
 
-export function panelResumenPayload() {
+export function panelResumenPayload(overrides?: {
+  caficultoresActivos?: number
+  diagnosticosHoy?: number
+  premiumActivos?: number
+  gratisOSinPlan?: number
+}) {
   return {
-    ambito: "equipo",
+    ambito: "equipo" as const,
     titulo: "Resumen del panel",
-    caficultoresActivos: 0,
-    diagnosticosHoy: 0,
+    caficultoresActivos: overrides?.caficultoresActivos ?? 0,
+    diagnosticosHoy: overrides?.diagnosticosHoy ?? 0,
+    premiumActivos: overrides?.premiumActivos ?? 0,
+    gratisOSinPlan: overrides?.gratisOSinPlan ?? 0,
   }
 }
 
-export function panelApiResponse(access: PanelAccess): {
+export function panelApiResponse(
+  access: PanelAccess,
+  resumen = panelResumenPayload(),
+): {
   status: number
   body: Record<string, unknown>
 } {
@@ -44,7 +54,7 @@ export function panelApiResponse(access: PanelAccess): {
     return { status: access.status, body: { error: access.error } }
   }
 
-  return { status: 200, body: panelResumenPayload() }
+  return { status: 200, body: resumen }
 }
 
 export function panelGateDecision(input: {

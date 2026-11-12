@@ -34,7 +34,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
               Resumen
             </Link>
             <Link href="/panel/equipo" className="hover:text-coffee-950">
-              Equipo
+              Usuarios
             </Link>
           </nav>
         </div>
