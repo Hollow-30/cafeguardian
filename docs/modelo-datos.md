@@ -13,8 +13,9 @@ auth.users
          ├─ suscripciones (1:N) → planes
          └─ eventos (1:N)
 
-zonas_clima   (catálogo compartido con coordenadas; sin relación con profiles)
-   └─ riesgo_diario (1:N, semáforo por zona y fecha)
+zonas_clima   (catálogo compartido con coordenadas)
+   ├─ riesgo_diario (1:N, semáforo por zona y fecha)
+   └─ profiles.zona_clima_id (zona que eligió cada usuario; nullable)
 
 clima_diario  (clima por hora de un punto de coordenadas y una fecha; sin clave foránea)
 cron_runs     (una fila por corrida de la descarga diaria)
@@ -24,7 +25,7 @@ cron_runs     (una fila por corrida de la descarga diaria)
 
 | Tabla | Propósito | Campos clave |
 |---|---|---|
-| `profiles` | Perfil de app ligado a Auth | `id`, `full_name`, `rol` |
+| `profiles` | Perfil de app ligado a Auth | `id`, `full_name`, `rol`, `zona_clima_id` (CAFG-113) |
 | `zonas` | Zona general de la finca (sin GPS exacto) | `distrito`, `centro_poblado`, `etiqueta`, `gps_aproximado` |
 | `zonas_clima` | Catálogo compartido de zonas con coordenadas para el clima | `nombre`, `distrito`, `centro_poblado`, `latitud`, `longitud`, `coordenada_verificada`, `activo` |
 | `clima_diario` | Clima por hora (48 h) de un punto, con fuente y fecha de descarga | `latitud`, `longitud`, `fecha`, `horas`, `fuente`, `descargado_en` |
@@ -54,7 +55,8 @@ Orden:
 3. `supabase/migrations/20261102_fotos_historial_r2.sql`
 4. `supabase/migrations/20261107_zonas_clima.sql`
 5. `supabase/migrations/20261111_clima_riesgo_cron.sql` (CAFG-111; necesita las anteriores)
-6. `supabase/seed.sql` (datos ficticios y catálogo de zonas)
+6. `supabase/migrations/20261112_profiles_zona_clima.sql` (CAFG-113; necesita `zonas_clima`)
+7. `supabase/seed.sql` (datos ficticios y catálogo de zonas)
 
 ## Fotos en Cloudflare R2
 
@@ -71,6 +73,7 @@ psql "$POSTGRES_URL_NON_POOLING" -v ON_ERROR_STOP=1 -f supabase/migrations/20261
 psql "$POSTGRES_URL_NON_POOLING" -v ON_ERROR_STOP=1 -f supabase/migrations/20261102_fotos_historial_r2.sql
 psql "$POSTGRES_URL_NON_POOLING" -v ON_ERROR_STOP=1 -f supabase/migrations/20261107_zonas_clima.sql
 psql "$POSTGRES_URL_NON_POOLING" -v ON_ERROR_STOP=1 -f supabase/migrations/20261111_clima_riesgo_cron.sql
+psql "$POSTGRES_URL_NON_POOLING" -v ON_ERROR_STOP=1 -f supabase/migrations/20261112_profiles_zona_clima.sql
 psql "$POSTGRES_URL_NON_POOLING" -v ON_ERROR_STOP=1 -f supabase/seed.sql
 ```
 
@@ -158,6 +161,35 @@ where tablename in ('clima_diario', 'riesgo_diario', 'cron_runs') order by table
 
 -- Después de la primera corrida: última corrida y su estado
 select inicio, fin, estado, zonas_ok, zonas_con_error from public.cron_runs order by inicio desc limit 5;
+```
+
+## Zona del usuario para el semáforo (`profiles.zona_clima_id`, CAFG-113)
+
+Cada usuario elige **una** zona del catálogo `zonas_clima` para ver su semáforo. Es independiente de `zonas`, que sigue siendo por lote y de texto libre (`lib/fotos/ensure-zona.ts` no cambia).
+
+- Columna `profiles.zona_clima_id uuid null`, con clave foránea a `zonas_clima(id)` y `on delete set null`. Nula significa "aún no eligió zona".
+- RLS: no hay políticas nuevas. `profiles_update_own` ya deja al dueño cambiar su fila (sin cambiar `rol`) y `profiles_select_own_or_admin` ya la deja leer.
+- La clave foránea evita ids inventados, pero **no** zonas inactivas (sin semáforo). Eso lo cubre el trigger `profiles_zona_clima_activa`: antes de insertar o de cambiar `zona_clima_id` con un valor, exige que la zona exista y tenga `activo = true`. Solo se evalúa cuando se escribe esa columna, así que no estorba otros cambios del perfil. **Hueco que queda:** si una zona se desactiva después, los usuarios que ya la tenían la conservan (verán "sin dato" hasta que la cambien).
+- La app la cambia con `PATCH /api/perfil/zona` (ver `docs/semaforo/pantalla-semaforo.md`), que valida lo mismo antes de escribir.
+- **Se aplica antes del merge:** la pantalla lee esta columna; sin ella, la lectura falla.
+
+### Comprobar sin tocar datos
+
+Otra persona con acceso a la base puede correr esto con `psql`; solo lee, salvo el bloque con `rollback`.
+
+```sql
+-- Esperado: 1 fila (uuid, nullable)
+select column_name, data_type, is_nullable from information_schema.columns
+where table_schema = 'public' and table_name = 'profiles' and column_name = 'zona_clima_id';
+
+-- Esperado: 1 fila, trigger de profiles_zona_clima_activa
+select tgname from pg_trigger where tgrelid = 'public.profiles'::regclass and tgname = 'profiles_zona_clima_activa';
+
+-- Esperado: error "La zona no existe o no está activa." (zona inactiva); el rollback deshace todo
+begin;
+update public.profiles set zona_clima_id = (select id from public.zonas_clima where not activo limit 1)
+where id = (select id from public.profiles limit 1);
+rollback;
 ```
 
 ## Datos de prueba
