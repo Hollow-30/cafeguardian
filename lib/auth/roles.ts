@@ -44,6 +44,8 @@ export function isAuthenticatedFeaturePath(pathname: string): boolean {
     pathname.startsWith("/historial/") ||
     pathname === "/planes" ||
     pathname.startsWith("/planes/") ||
+    pathname === "/semaforo" ||
+    pathname.startsWith("/semaforo/") ||
     pathname === "/mis-pagos" ||
     pathname === "/account"
   )

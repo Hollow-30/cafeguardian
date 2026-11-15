@@ -2,7 +2,7 @@
 
 Responsable: Frente Semáforo y avisos.
 
-La pantalla muestra al caficultor el último semáforo calculado para **su zona** del catálogo `zonas_clima`. Lo que ya existe en el repo es la parte que no es pantalla: la columna que guarda su zona, la ruta que la cambia y la lógica con sus textos y estados. **La pantalla en sí (página, tarjeta y selector) todavía no está escrita**: espera a que Frontend fusione su rama, porque usará su paleta y sus componentes.
+La pantalla muestra al caficultor el último semáforo calculado para **su zona** del catálogo `zonas_clima`. Está en `/semaforo` (CAFG-182 y CAFG-186). Usa la paleta `coffee-*` de Frontend para todo lo neutro; solo los colores del semáforo (verde, amarillo, rojo) son hexadecimales de `presentacion.ts`.
 
 El semáforo mide qué tan favorable es el clima para que la roya avance. No es una probabilidad de tener roya ni un diagnóstico, y los textos no usan esas palabras.
 
@@ -14,7 +14,21 @@ El semáforo mide qué tan favorable es el clima para que la roya avance. No es 
 | `app/api/perfil/zona/route.ts` | `PATCH /api/perfil/zona`: guarda la zona elegida |
 | `lib/semaforo/leer.ts` | Lee perfil, zona y última fila de `riesgo_diario` con la sesión del usuario |
 | `lib/semaforo/estado.ts` | Decide en qué estado está la pantalla |
-| `lib/semaforo/presentacion.ts` | **Único lugar** con etiquetas, textos, colores y fechas legibles |
+| `lib/semaforo/presentacion.ts` | **Único lugar** con etiquetas, textos (`TEXTOS_SEMAFORO`, `TEXTOS_ZONA`), colores y fechas legibles |
+| `lib/semaforo/zonas.ts` | Lee las zonas activas (`zonas_clima`, `activo = true`, por nombre) con la sesión del usuario |
+| `app/semaforo/page.tsx` | Página de servidor: sin sesión va a `/login?next=/semaforo`; lee, calcula el estado y muestra tarjeta o selector |
+| `app/semaforo/loading.tsx` | Esqueleto con «Cargando el semáforo de tu zona…» |
+| `components/semaforo-card.tsx` | Nivel (texto, color e icono distinto), barra del índice, qué hacer, motivo tal cual, fecha, nota de ayer, aviso de ~9 km y crédito de Open-Meteo |
+| `components/zona-selector.tsx` | Lista de zonas activas; guarda con `PATCH /api/perfil/zona` y refresca la página; «Guardando…» y errores con `aria-live` |
+| `components/cambiar-zona.tsx` | Enlace «Cambiar zona» que abre el selector y lo cierra al guardar |
+| `lib/auth/roles.ts` y `proxy.ts` | `/semaforo` exige sesión (también se agregó al `matcher`) |
+
+### Cómo se arma la página
+
+- Sin zona (`sin_zona`): el selector es la llamada principal.
+- Con zona: tarjeta y, debajo, «Cambiar zona».
+- Si falla la lectura del semáforo o de la lista de zonas: estado `error_lectura` con «Volver a cargar».
+- El estado `cargando` solo lo muestra `loading.tsx`.
 
 ### `PATCH /api/perfil/zona`
 
@@ -81,6 +95,6 @@ Si se hace el merge antes de la migración, `PATCH /api/perfil/zona` responde 50
 
 ## Qué falta
 
-- Escribir `app/semaforo/page.tsx`, `loading.tsx`, `components/semaforo-card.tsx` y el selector de zona (lista de zonas activas por nombre), cuando Frontend fusione su rama.
-- Enlazar la pantalla desde la navegación y el inicio (archivos de Frontend).
-- Aplicar la migración (Piero, con Jorge).
+- Enlazar la pantalla desde la navegación (`content/navigation.ts`) y el inicio (`components/farmer-home.tsx`): lo hace Frontend (Gabriel).
+- Aviso de privacidad (CAFG-176) y «usar mi ubicación actual» con GPS (CAFG-177).
+- Comprobación visual en un teléfono real y validación de textos y colores.

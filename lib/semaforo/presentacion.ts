@@ -55,6 +55,24 @@ export const TEXTOS_SEMAFORO = {
     `Estimación para la zona ${zona} (unos 9 km a la redonda). No es una medición de tu parcela.`,
   datoDelDia: (fechaTexto: string) => `Estimación del ${fechaTexto}`,
   datoVencido: (fechaTexto: string) => `Dato del ${fechaTexto}`,
+  nivel: "Nivel",
+  indice: "Qué tan favorable es el clima",
+  queHacer: "Qué hacer",
+  reintentar: "Volver a cargar",
+} as const
+
+// Textos del selector de zona. Mismo criterio: un solo lugar, sin «probabilidad» ni «diagnóstico».
+export const TEXTOS_ZONA = {
+  titulo: "Elige tu zona",
+  descripcion: "Elige la zona más cercana a tu finca para ver su semáforo.",
+  cambiar: "Cambiar zona",
+  cerrar: "Cerrar",
+  guardando: "Guardando…",
+  guardada: (zona: string) => `Listo, tu zona es ${zona}.`,
+  sinZonas: "Por ahora no hay zonas disponibles.",
+  errorGuardar: "No pudimos guardar tu zona. Vuelve a intentar en unos minutos.",
+  errorSesion: "Tu sesión terminó. Vuelve a iniciar sesión.",
+  errorZona: "Esa zona ya no está disponible. Elige otra.",
 } as const
 
 export const CREDITO_CLIMA = {
