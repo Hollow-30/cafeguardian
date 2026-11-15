@@ -6,6 +6,7 @@ import {
   CREDITO_CLIMA,
   NIVELES_PRESENTACION,
   TEXTOS_SEMAFORO,
+  TEXTOS_ZONA,
   formatearFecha,
   vistaDelRiesgo,
 } from "./presentacion"
@@ -92,6 +93,21 @@ describe("textos fijos", () => {
 
   it("la nota del dato de ayer es la acordada", () => {
     expect(TEXTOS_SEMAFORO.notaDatoDeAyer).toBe("El de hoy se calcula alrededor de las 6 a. m.")
+  })
+})
+
+describe("TEXTOS_ZONA", () => {
+  it("ningún texto del selector usa «probabilidad», «diagnóstico» ni «hoy»", () => {
+    const textos = Object.values(TEXTOS_ZONA).map((texto) =>
+      typeof texto === "function" ? texto("Saposoa") : texto,
+    )
+    expect(textos.length).toBeGreaterThan(5)
+    for (const texto of textos) expect(texto).not.toMatch(/\bhoy\b|probabilidad|diagn[oó]stic/i)
+  })
+
+  it("el botón para abrir el selector dice «Cambiar zona»", () => {
+    expect(TEXTOS_ZONA.cambiar).toBe("Cambiar zona")
+    expect(TEXTOS_ZONA.guardando).toBe("Guardando…")
   })
 })
 
