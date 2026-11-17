@@ -55,4 +55,10 @@ describe("acceso desde la portada", () => {
     expect(screen.getByLabelText("Contraseña")).toHaveAttribute("type", "text")
     expect(screen.getByRole("link", { name: "Volver al inicio" })).toHaveAttribute("href", "/")
   })
+
+  it("ofrece recuperar la contraseña desde el ingreso", () => {
+    render(<AuthForm mode="login" />)
+    expect(screen.getByRole("link", { name: "¿Olvidaste tu contraseña?" })).toHaveAttribute("href", "/recuperar")
+  })
 })
+
