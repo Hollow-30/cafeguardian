@@ -1,5 +1,11 @@
 import { describe, expect, it, vi } from "vitest"
-import { addDaysIso, activarPremiumPerfil, expirePastDueSubscriptions, vencerPremiumPerfil } from "./suscripciones"
+import {
+  addDaysIso,
+  activarPremiumPerfil,
+  ensurePruebaRegistro,
+  expirePastDueSubscriptions,
+  vencerPremiumPerfil,
+} from "./suscripciones"
 
 describe("addDaysIso", () => {
   it("suma días en calendario", () => {
@@ -36,6 +42,72 @@ describe("vencerPremiumPerfil", () => {
     await expect(vencerPremiumPerfil(supabase as never, "user-1")).resolves.toBe(1)
     expect(eqProfile).toHaveBeenCalledWith("profile_id", "user-1")
     expect(eqEstado).toHaveBeenCalledWith("estado", "activa")
+  })
+})
+
+describe("ensurePruebaRegistro", () => {
+  it("no crea nada si ya hay suscripciones", async () => {
+    const supabase = {
+      from: vi.fn(() => ({
+        select: () => ({
+          eq: async () => ({ count: 1, error: null }),
+        }),
+      })),
+    }
+    await expect(ensurePruebaRegistro(supabase as never, "user-1")).resolves.toBeNull()
+  })
+
+  it("crea prueba_30 si el perfil no tiene suscripciones", async () => {
+    const planMaybe = vi.fn(async () => ({
+      data: { id: "plan-prueba", codigo: "prueba_30", dias_duracion: 30 },
+      error: null,
+    }))
+    const insertSingle = vi.fn(async () => ({
+      data: { id: "sub-trial", termina_en: "2026-12-17" },
+      error: null,
+    }))
+    const vencerSelect = vi.fn(async () => ({ data: [], error: null }))
+    let suscripcionesCalls = 0
+
+    const supabase = {
+      from: vi.fn((table: string) => {
+        if (table === "suscripciones") {
+          suscripcionesCalls += 1
+          if (suscripcionesCalls === 1) {
+            return {
+              select: () => ({
+                eq: async () => ({ count: 0, error: null }),
+              }),
+            }
+          }
+          return {
+            update: () => ({
+              eq: () => ({
+                eq: () => ({ select: vencerSelect }),
+              }),
+            }),
+            insert: () => ({
+              select: () => ({ single: insertSingle }),
+            }),
+          }
+        }
+        return {
+          select: () => ({
+            eq: () => ({
+              eq: () => ({ maybeSingle: planMaybe }),
+            }),
+          }),
+        }
+      }),
+    }
+
+    await expect(
+      ensurePruebaRegistro(supabase as never, "user-1", new Date("2026-11-17T18:00:00.000Z")),
+    ).resolves.toEqual({
+      suscripcionId: "sub-trial",
+      termina_en: "2026-12-17",
+      plan_codigo: "prueba_30",
+    })
   })
 })
 

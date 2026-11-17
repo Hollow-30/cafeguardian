@@ -38,6 +38,26 @@ export async function vencerPremiumPerfil(supabase: Db, profileId: string): Prom
 }
 
 /**
+ * Si el perfil aún no tiene ninguna suscripción, crea la prueba de 30 días.
+ * No re-activa a quien ya venció (pasa solo a Gratis).
+ */
+export async function ensurePruebaRegistro(
+  supabase: Db,
+  profileId: string,
+  now: Date = new Date(),
+): Promise<{ suscripcionId: string; termina_en: string; plan_codigo: string } | null> {
+  const { count, error } = await supabase
+    .from("suscripciones")
+    .select("id", { count: "exact", head: true })
+    .eq("profile_id", profileId)
+
+  if (error) throw new Error(error.message)
+  if ((count ?? 0) > 0) return null
+
+  return activarPremiumPerfil(supabase, profileId, "prueba_30", now)
+}
+
+/**
  * Activa Premium: cierra activas previas y crea una nueva.
  * Por defecto usa el plan `basico_anual`; `prueba_30` sirve como trial de 30 días.
  */

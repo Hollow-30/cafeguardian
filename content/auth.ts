@@ -5,7 +5,7 @@ export const authContent = {
   note: "El análisis de fotos necesita conexión a internet.",
   imageAlt: "Caficultor revisando frutos de café entre las plantas",
   login: { eyebrow: "QUÉ BUENO TENERTE DE VUELTA", title: "Ingresa a tu cuenta", description: "Continúa donde te quedaste, hoja a hoja.", submit: "Ingresar al panel", switchPrompt: "¿Aún no tienes una cuenta?", switchLabel: "Crear mi cuenta" },
-  register: { eyebrow: "EMPECEMOS POR TU CAFETAL", title: "Crea tu cuenta", description: "Un primer paso para llevar la historia de tu café.", submit: "Crear mi cuenta", switchPrompt: "¿Ya tienes una cuenta?", switchLabel: "Inicia sesión" },
+  register: { eyebrow: "EMPECEMOS POR TU CAFETAL", title: "Crea tu cuenta", description: "Al registrarte tienes 30 días de Premium (Prueba), sin límite de fotos.", submit: "Crear mi cuenta", switchPrompt: "¿Ya tienes una cuenta?", switchLabel: "Inicia sesión" },
   name: "Nombre completo",
   namePlaceholder: "Escribe tu nombre",
   email: "Correo electrónico",

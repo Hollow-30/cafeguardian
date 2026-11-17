@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server"
+import { resolveRole } from "@/lib/auth/roles"
 import { getAuthUser } from "@/lib/auth/session"
 import { buildPlanEstado } from "@/lib/plans/estado"
-import { expirePastDueSubscriptions } from "@/lib/plans/suscripciones"
+import { ensurePruebaRegistro, expirePastDueSubscriptions } from "@/lib/plans/suscripciones"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { createClient } from "@/lib/supabase/server"
 
@@ -16,9 +17,14 @@ export async function GET() {
   try {
     // Vence en bloque las activas caducadas (service role; el JWT del user no tiene UPDATE).
     try {
-      await expirePastDueSubscriptions(createAdminClient())
+      const admin = createAdminClient()
+      await expirePastDueSubscriptions(admin)
+      // Respaldo si el trigger de registro no alcanzó a crear la prueba (p. ej. migración pendiente).
+      if (resolveRole(user) === "caficultor") {
+        await ensurePruebaRegistro(admin, user.id)
+      }
     } catch {
-      // Si falla el vencimiento automático, igual se calcula el estado efectivo por fechas.
+      // Si falla el admin, igual se calcula el estado con el JWT del usuario.
     }
 
     const supabase = await createClient()

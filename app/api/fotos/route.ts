@@ -8,6 +8,8 @@ import { assertFotoUpload } from "@/lib/fotos/validation"
 import { getAuthUser } from "@/lib/auth/session"
 import { resolveRole, canAccessPanel } from "@/lib/auth/roles"
 import { buildPlanEstado } from "@/lib/plans/estado"
+import { ensurePruebaRegistro, expirePastDueSubscriptions } from "@/lib/plans/suscripciones"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { uploadFotoObject } from "@/lib/r2/client"
 import { createClient } from "@/lib/supabase/server"
 
@@ -105,6 +107,16 @@ export async function POST(request: Request) {
   const supabase = await createClient()
 
   try {
+    try {
+      const admin = createAdminClient()
+      await expirePastDueSubscriptions(admin)
+      if (resolveRole(user) === "caficultor") {
+        await ensurePruebaRegistro(admin, user.id)
+      }
+    } catch {
+      // Sin service role igual se aplica la cuota con el estado actual.
+    }
+
     const planEstado = await buildPlanEstado(supabase, user.id)
     if (planEstado.status.plan === "free" && (planEstado.remaining ?? 0) <= 0) {
       return NextResponse.json(

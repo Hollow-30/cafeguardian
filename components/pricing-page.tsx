@@ -44,6 +44,11 @@ export function PricingPage() {
   const used = user.photosUsedThisMonth
   const quota = estado?.quota ?? freePhotoQuota
   const exhausted = status.plan === "free" && remaining === 0
+  const endsOn = estado?.endsOn ?? null
+  const endsOnLabel = endsOn
+    ? new Date(endsOn + "T00:00:00").toLocaleDateString("es-PE", { dateStyle: "long" })
+    : null
+  const planTitle = status.isTrial ? "Prueba" : status.plan === "premium" ? "Premium" : "Gratis"
 
   return (
     <main className="min-h-screen bg-white px-4 py-8 text-coffee-950 sm:px-6">
@@ -79,7 +84,13 @@ export function PricingPage() {
                   <p className="text-sm font-semibold uppercase tracking-wide text-coffee-700">
                     {pricingContent.currentPlan}
                   </p>
-                  <p className="text-2xl font-bold">{status.plan === "premium" ? "Premium" : "Gratis"}</p>
+                  <p className="text-2xl font-bold">{planTitle}</p>
+                  {status.isTrial && endsOnLabel && (
+                    <p className="mt-1 text-sm text-coffee-950/70">Termina el {endsOnLabel}</p>
+                  )}
+                  {!status.isTrial && status.premiumActive && endsOnLabel && (
+                    <p className="mt-1 text-sm text-coffee-950/70">Vigente hasta el {endsOnLabel}</p>
+                  )}
                 </div>
                 <div className="text-left sm:text-right">
                   <p className="font-semibold">

@@ -12,6 +12,10 @@ export type PlanEstadoResponse = {
   status: PlanStatus
   remaining: number | null
   quota: number
+  /** Codigo del plan activo en DB (`prueba_30`, `basico_anual`) o null si Gratis. */
+  planCodigo: string | null
+  /** Fecha de fin visible (YYYY-MM-DD) de la suscripción activa, o null. */
+  endsOn: string | null
 }
 
 type PlanJoin = { codigo: string } | { codigo: string }[] | null
@@ -76,5 +80,7 @@ export async function buildPlanEstado(
     status,
     remaining: photosRemaining(user),
     quota: freePhotoQuota,
+    planCodigo: status.plan === "premium" ? (sub?.plan_codigo ?? null) : null,
+    endsOn: status.plan === "premium" ? (sub?.termina_en ?? null) : null,
   }
 }
