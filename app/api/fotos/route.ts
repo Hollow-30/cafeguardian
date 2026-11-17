@@ -7,6 +7,7 @@ import { buildFotoObjectKey } from "@/lib/fotos/object-key"
 import { assertFotoUpload } from "@/lib/fotos/validation"
 import { getAuthUser } from "@/lib/auth/session"
 import { resolveRole, canAccessPanel } from "@/lib/auth/roles"
+import { buildPlanEstado } from "@/lib/plans/estado"
 import { uploadFotoObject } from "@/lib/r2/client"
 import { createClient } from "@/lib/supabase/server"
 
@@ -102,6 +103,22 @@ export async function POST(request: Request) {
   }
 
   const supabase = await createClient()
+
+  try {
+    const planEstado = await buildPlanEstado(supabase, user.id)
+    if (planEstado.status.plan === "free" && (planEstado.remaining ?? 0) <= 0) {
+      return NextResponse.json(
+        { error: "Has usado todas tus fotos gratuitas este mes." },
+        { status: 403 },
+      )
+    }
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "No se pudo verificar la cuota del plan." },
+      { status: 500 },
+    )
+  }
+
   let zona: { id: string; profile_id: string; etiqueta: string } | null = null
 
   if (zonaId) {
