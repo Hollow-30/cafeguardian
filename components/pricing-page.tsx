@@ -1,49 +1,27 @@
-"use client"
-
 import Link from "next/link"
-import { Check, LockKeyhole, Sparkles } from "lucide-react"
-import { pricingContent, freePhotoQuota } from "@/content/pricing"
-import { getPlanStatus, photosRemaining, type PlanUser } from "@/lib/plans"
-
-const demoUser: PlanUser = { plan: "premium", trialStartedAt: "2026-11-01T12:00:00Z", photosUsedThisMonth: 3 }
+import { Check } from "lucide-react"
+import { pricingContent } from "@/content/pricing"
 
 export function PricingPage() {
-  const status = getPlanStatus(demoUser, new Date())
-  const remaining = photosRemaining(demoUser)
-  const used = demoUser.photosUsedThisMonth
-
   return (
-    <main className="min-h-screen bg-white px-4 py-8 text-coffee-950 sm:px-6">
-      <div className="mx-auto flex max-w-4xl flex-col gap-8">
-        <header className="flex flex-col gap-3">
-          <span className="w-fit rounded-full bg-coffee-50 px-3 py-1 text-xs font-bold text-coffee-900">{pricingContent.demoLabel}</span>
-          <Link href="/" className="w-fit rounded-lg px-1 py-2 text-sm font-semibold text-coffee-800 underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-coffee-700">Café Guardián</Link>
-          <div className="flex items-center gap-2 text-coffee-700"><Sparkles aria-hidden="true" /><span className="font-semibold">Planes</span></div>
-          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">{pricingContent.title}</h1>
-          <p className="max-w-xl text-lg text-coffee-950/75">{pricingContent.subtitle}</p>
-        </header>
-
-        <section aria-label="Estado de tu plan" className="rounded-2xl border border-coffee-700/30 bg-coffee-50 p-5">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div><p className="text-sm font-semibold uppercase tracking-wide text-coffee-700">{pricingContent.currentPlan}</p><p className="text-2xl font-bold">{status.plan === "premium" ? "Premium" : "Gratis"}</p></div>
-            <div className="text-left sm:text-right"><p className="font-semibold">{status.isTrial ? `${status.trialDaysRemaining} días restantes de prueba` : "Tu plan está listo"}</p><p className="text-sm text-coffee-950/70">{used} de {" "}{status.plan === "premium" ? pricingContent.unlimitedPhotos : freePhotoQuota}{" "}{pricingContent.usedPhotos}</p></div>
-          </div>
-          {status.plan === "free" && <p className="mt-3 text-sm font-semibold text-coffee-800">{pricingContent.quotaExhausted}</p>}
-        </section>
-
-        <section className="grid gap-5 md:grid-cols-2" aria-label="Planes disponibles">
-          {pricingContent.plans.map((plan) => {
-            const current = status.plan === plan.id
-            return <article key={plan.id} className={`flex flex-col gap-5 rounded-2xl border-2 p-6 ${current ? "border-coffee-700 bg-coffee-50" : "border-coffee-900/15 bg-white"}`}>
-              <div className="flex items-start justify-between gap-3"><div><h2 className="text-2xl font-bold">{plan.name}</h2><p className="mt-1 text-sm text-coffee-950/70">{plan.cadence}</p></div>{current && <span className="rounded-full bg-coffee-800 px-3 py-1 text-xs font-bold text-white">{pricingContent.currentPlan}</span>}</div>
-              <div><span className="text-4xl font-bold">{plan.price}</span><span className="ml-2 rounded-full bg-coffee-100 px-2 py-1 text-xs font-semibold">{pricingContent.referentialLabel}</span></div>
-              <ul className="flex flex-1 flex-col gap-3">{plan.features.map((feature) => <li key={feature} className="flex gap-2 text-sm"><Check aria-hidden="true" className="mt-0.5 shrink-0 text-coffee-700" /> <span>{feature}</span></li>)}</ul>
-              {plan.id === "premium" && !current && <Link href="/planes/pagar" className="inline-flex min-h-12 items-center justify-center rounded-xl bg-coffee-800 px-5 py-3 font-bold text-white hover:bg-coffee-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-coffee-700">{pricingContent.nextStep}</Link>}
-              {plan.id === "free" && <p className="flex items-center gap-2 text-sm text-coffee-950/70"><LockKeyhole aria-hidden="true" /> {pricingContent.noCard}</p>}
+    <main className="min-h-screen bg-white px-5 py-10 text-coffee-950">
+      <div className="mx-auto max-w-4xl">
+        <Link href="/" className="inline-flex min-h-12 items-center text-sm font-semibold text-coffee-800 underline underline-offset-4">Volver al inicio</Link>
+        <p className="mt-4 text-sm font-semibold uppercase tracking-wider text-coffee-700">Planes</p>
+        <h1 className="mt-2 text-3xl font-bold sm:text-4xl">{pricingContent.title}</h1>
+        <p className="mt-3 max-w-xl leading-7 text-coffee-800">Conoce las opciones previstas para Café Guardián. Los precios y beneficios son referenciales.</p>
+        <section aria-label="Planes disponibles" className="mt-8 grid gap-5 md:grid-cols-2">
+          {pricingContent.plans.map((plan) => (
+            <article key={plan.id} className="flex flex-col rounded-2xl border border-coffee-200 p-6">
+              <h2 className="text-2xl font-bold">{plan.name}</h2>
+              <p className="mt-1 text-sm text-coffee-700">{plan.cadence}</p>
+              <p className="mt-5 text-3xl font-bold">{plan.price} <span className="text-sm font-normal text-coffee-700">referencial</span></p>
+              <ul className="mt-6 flex flex-1 flex-col gap-3">{plan.features.filter((feature) => feature !== "[Por confirmar]").map((feature) => <li key={feature} className="flex gap-2 text-sm"><Check className="size-5 shrink-0 text-coffee-700" aria-hidden="true" />{feature}</li>)}</ul>
+              {plan.id === "premium" && <Link href="/planes/pagar" className="mt-6 inline-flex min-h-12 items-center justify-center rounded-xl bg-coffee-800 px-5 font-bold text-white hover:bg-coffee-900">Consultar disponibilidad</Link>}
             </article>
-          })}
+          ))}
         </section>
-        <p className="text-center text-sm text-coffee-950/70">{pricingContent.trial}</p>
+        <p className="mt-6 text-sm leading-6 text-coffee-700">El estado de tu plan todavía no está disponible en esta pantalla.</p>
       </div>
     </main>
   )

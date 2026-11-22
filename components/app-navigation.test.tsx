@@ -82,5 +82,15 @@ describe("AppNavigation", () => {
       expect(mocks.replace).toHaveBeenCalledWith("/login")
       expect(mocks.refresh).toHaveBeenCalledOnce()
     })
+    expect(screen.getByRole("button", { name: "Cerrar sesión" })).toBeEnabled()
+  })
+
+  it("permite volver a intentar si falla el cierre de sesión", async () => {
+    mocks.signOut.mockResolvedValueOnce({ error: new Error("offline") })
+    render(<AppNavigation role="caficultor" />)
+    fireEvent.click(screen.getByRole("button", { name: "Abrir menú de usuario" }))
+    fireEvent.click(screen.getByRole("button", { name: "Cerrar sesión" }))
+    expect(await screen.findByRole("alert")).toHaveTextContent("No se pudo cerrar la sesión")
+    expect(screen.getByRole("button", { name: "Cerrar sesión" })).toBeEnabled()
   })
 })
