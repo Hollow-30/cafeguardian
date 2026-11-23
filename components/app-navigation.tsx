@@ -47,6 +47,7 @@ export function AppNavigation({ role, user }: { role: Role | null; user?: AuthUs
       router.refresh()
     } catch {
       setSignOutError(copy.signOutError)
+    } finally {
       setSigningOut(false)
     }
   }
