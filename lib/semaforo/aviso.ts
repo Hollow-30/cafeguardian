@@ -16,6 +16,9 @@ export type AvisoDecision =
   | { tipo: "franja"; dia: string; zona: string; nivel: "poco_favorable"; esDeAyer: boolean }
   | { tipo: "bloque"; dia: string; zona: string; nivel: Exclude<NivelRiesgo, "poco_favorable">; esDeAyer: boolean }
 
+/** Lo que el componente recibe: todo menos "nada" (con "nada" no se renderiza el aviso). */
+export type AvisoVisible = Exclude<AvisoDecision, { tipo: "nada" }>
+
 export const PREFIJO_CLAVE_CIERRE = "cg-aviso-semaforo-cerrado:"
 
 // Clave de localStorage para "cerrado el resto de este día". Solo lleva el día de Lima:

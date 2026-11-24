@@ -5,6 +5,7 @@ import type { NivelRiesgo } from "@/lib/risk/types"
 import {
   CREDITO_CLIMA,
   NIVELES_PRESENTACION,
+  TEXTOS_AVISO,
   TEXTOS_SEMAFORO,
   TEXTOS_ZONA,
   formatearFecha,
@@ -108,6 +109,30 @@ describe("TEXTOS_ZONA", () => {
   it("el botón para abrir el selector dice «Cambiar zona»", () => {
     expect(TEXTOS_ZONA.cambiar).toBe("Cambiar zona")
     expect(TEXTOS_ZONA.guardando).toBe("Guardando…")
+  })
+})
+
+describe("TEXTOS_AVISO", () => {
+  const textos = () =>
+    Object.values(TEXTOS_AVISO).map((texto) => (typeof texto === "function" ? texto("Saposoa") : texto))
+
+  it("ningún texto del aviso usa «probabilidad», «diagnóstico» ni «hoy»", () => {
+    expect(textos().length).toBeGreaterThan(8)
+    for (const texto of textos()) expect(texto).not.toMatch(/\bhoy\b|probabilidad|diagn[oó]stic/i)
+  })
+
+  it("los textos son los acordados", () => {
+    expect(TEXTOS_AVISO.franjaTitulo("Poco favorable")).toBe("Semáforo de tu zona: Poco favorable")
+    expect(TEXTOS_AVISO.etiquetaBloque("Saposoa")).toBe("SEMÁFORO DE TU ZONA · Saposoa")
+    expect(TEXTOS_AVISO.verSemaforo).toBe("Ver semáforo")
+    expect(TEXTOS_AVISO.verSemaforoCompleto).toBe("Ver semáforo completo")
+    expect(TEXTOS_AVISO.cerrar).toBe("Cerrar aviso")
+    expect(TEXTOS_AVISO.invitacionEtiqueta).toBe("SEMÁFORO DE ROYA")
+    expect(TEXTOS_AVISO.invitacionTitulo).toBe("Elige tu zona para ver el semáforo")
+    expect(TEXTOS_AVISO.invitacionBoton).toBe("Elegir mi zona")
+    expect(TEXTOS_AVISO.invitacionDescripcion).toBe(
+      "Elige la zona más cercana a tu finca y verás cómo está el clima para la roya.",
+    )
   })
 })
 
