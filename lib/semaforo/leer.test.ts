@@ -45,6 +45,46 @@ describe("leerSemaforo", () => {
     })
   })
 
+  it("trae calculadoEn cuando la fila tiene calculado_en", async () => {
+    const { cliente } = clienteFalso({
+      profiles: ok({ zona_clima_id: "z1" }),
+      zonas_clima: ok({ id: "z1", nombre: "Saposoa" }),
+      riesgo_diario: ok({
+        fecha: "2026-11-22",
+        nivel: "favorable",
+        indice: "0.62",
+        motivo: "m",
+        detalle: null,
+        calculado_en: "2026-11-22T11:00:03.123+00:00",
+      }),
+    })
+    const lectura = await leerSemaforo(cliente, "u1")
+    expect(lectura.riesgo?.calculadoEn).toBe("2026-11-22T11:00:03.123+00:00")
+  })
+
+  it("si calculado_en es nulo o falta, la clave calculadoEn no aparece", async () => {
+    for (const extra of [{ calculado_en: null }, {}]) {
+      const { cliente } = clienteFalso({
+        profiles: ok({ zona_clima_id: "z1" }),
+        zonas_clima: ok({ id: "z1", nombre: "Saposoa" }),
+        riesgo_diario: ok({ fecha: "2026-11-22", nivel: "favorable", indice: "0.62", motivo: "m", detalle: null, ...extra }),
+      })
+      const lectura = await leerSemaforo(cliente, "u1")
+      expect(lectura.riesgo).not.toHaveProperty("calculadoEn")
+    }
+  })
+
+  it("pide calculado_en en la consulta de riesgo_diario", async () => {
+    const { cliente, pasos } = clienteFalso({
+      profiles: ok({ zona_clima_id: "z1" }),
+      zonas_clima: ok({ id: "z1", nombre: "Saposoa" }),
+      riesgo_diario: ok(null),
+    })
+    await leerSemaforo(cliente, "u1")
+    const seleccion = pasos.find((paso) => paso.tabla === "riesgo_diario" && paso.metodo === "select")
+    expect(String(seleccion?.args[0])).toContain("calculado_en")
+  })
+
   it("consulta el perfil propio y la última fila por fecha descendente", async () => {
     const { cliente, pasos } = clienteFalso({
       profiles: ok({ zona_clima_id: "z1" }),

@@ -29,7 +29,8 @@ export default async function SemaforoPage() {
   // Lectura con la sesión del usuario (RLS), sin service role.
   const supabase = await createClient()
   const [lectura, zonas] = await Promise.all([leerSemaforo(supabase, user.id), leerZonasActivas(supabase)])
-  const estado = estadoSemaforo({ lectura, ahora: new Date() })
+  const ahora = new Date()
+  const estado = estadoSemaforo({ lectura, ahora })
 
   // Si no se pudo leer el semáforo o la lista de zonas, se muestra el estado de error.
   if (estado.tipo === "error_lectura" || zonas === null) {
@@ -59,7 +60,7 @@ export default async function SemaforoPage() {
 
   return (
     <Marco>
-      <SemaforoCard estado={estado} />
+      <SemaforoCard estado={estado} ahora={ahora} />
       {zonas.length > 0 && <CambiarZona zonas={zonas} zonaActualId={estado.zona.id} />}
     </Marco>
   )
