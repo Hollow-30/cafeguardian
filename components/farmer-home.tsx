@@ -2,13 +2,13 @@
 
 import Image from "next/image"
 import Link from "next/link"
-import { useEffect, useState } from "react"
+import { useEffect, useState, type ReactNode } from "react"
 import { ArrowRight, Camera, History, Leaf, Lightbulb, Wifi, WifiOff } from "lucide-react"
 import { homeContent as copy } from "@/content/home"
 import { diagnosisCopy, getDiagnosisOrigin } from "@/content/diagnosis"
 import { loadHomeOverview, type HomeOverview } from "@/lib/home/overview"
 
-export function FarmerHome({ name }: { name: string }) {
+export function FarmerHome({ name, aviso }: { name: string; aviso?: ReactNode }) {
   const [overview, setOverview] = useState<HomeOverview | null>(null)
   const [attempt, setAttempt] = useState(0)
   useEffect(() => {
@@ -22,6 +22,7 @@ export function FarmerHome({ name }: { name: string }) {
     <main className="min-h-screen bg-white px-5 py-8 text-coffee-950 sm:py-12">
       <div className="mx-auto max-w-5xl">
         <header className="cg-enter"><p className="cg-kicker">{copy.eyebrow}</p><p className="mt-5 text-lg font-semibold">{copy.greeting(name)}</p><h1 className="cg-display mt-2 text-4xl sm:text-5xl">{copy.title}</h1><p className="mt-4 max-w-xl text-base leading-7 text-coffee-700">{copy.description}</p></header>
+        {aviso}
         <section className="relative isolate mt-8 overflow-hidden rounded-2xl bg-coffee-900 p-6 text-white sm:p-9">
           <Image src="/images/granos-cafe.jpg" alt={copy.imageAlt} fill sizes="(max-width: 1024px) 100vw, 1024px" className="-z-20 object-cover" />
           <div className="absolute inset-0 -z-10 bg-linear-to-r from-coffee-950 via-coffee-950/95 to-coffee-950/50" />
