@@ -95,6 +95,6 @@ Si se hace el merge antes de la migración, `PATCH /api/perfil/zona` responde 50
 
 ## Qué falta
 
-- Enlazar la pantalla desde la navegación (`content/navigation.ts`) y el inicio (`components/farmer-home.tsx`): lo hace Frontend (Gabriel).
+- Ya existen el enlace «Semáforo» en el menú del caficultor y el aviso del semáforo en su inicio (ver `docs/semaforo/aviso-en-app.md`). El aviso es un recordatorio al abrir la app; el aviso push real es una mejora posterior.
 - Aviso de privacidad (CAFG-176) y «usar mi ubicación actual» con GPS (CAFG-177).
 - Comprobación visual en un teléfono real y validación de textos y colores.

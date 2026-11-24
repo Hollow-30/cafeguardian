@@ -75,6 +75,22 @@ export const TEXTOS_ZONA = {
   errorZona: "Esa zona ya no está disponible. Elige otra.",
 } as const
 
+// Textos del aviso del inicio. Solo lo nuevo: el nivel, el icono y el «qué hacer» salen de
+// NIVELES_PRESENTACION, y la nota de estimación, la del dato de ayer y el título accesible
+// de TEXTOS_SEMAFORO. Sin «probabilidad» ni «diagnóstico»; «hoy» solo aparece en la nota de ayer.
+export const TEXTOS_AVISO = {
+  franjaTitulo: (etiquetaNivel: string) => `Semáforo de tu zona: ${etiquetaNivel}`,
+  etiquetaBloque: (zona: string) => `SEMÁFORO DE TU ZONA · ${zona}`,
+  verSemaforo: "Ver semáforo",
+  verSemaforoCompleto: "Ver semáforo completo",
+  cerrar: "Cerrar aviso",
+  cerradoTitulo: "Semáforo de tu zona",
+  invitacionEtiqueta: "SEMÁFORO DE ROYA",
+  invitacionTitulo: "Elige tu zona para ver el semáforo",
+  invitacionDescripcion: "Elige la zona más cercana a tu finca y verás cómo está el clima para la roya.",
+  invitacionBoton: "Elegir mi zona",
+} as const
+
 export const CREDITO_CLIMA = {
   texto: "Weather data by Open-Meteo.com",
   url: "https://open-meteo.com/",
