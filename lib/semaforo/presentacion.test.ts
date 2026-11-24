@@ -4,6 +4,8 @@ import type { NivelRiesgo } from "@/lib/risk/types"
 
 import {
   CREDITO_CLIMA,
+  TEXTOS_ANTIGUEDAD,
+  antiguedadDelDato,
   NIVELES_PRESENTACION,
   TEXTOS_AVISO,
   TEXTOS_SEMAFORO,
@@ -133,6 +135,76 @@ describe("TEXTOS_AVISO", () => {
     expect(TEXTOS_AVISO.invitacionDescripcion).toBe(
       "Elige la zona más cercana a tu finca y verás cómo está el clima para la roya.",
     )
+  })
+})
+
+describe("antiguedadDelDato", () => {
+  const AHORA = new Date("2026-11-24T12:00:00Z")
+  const MIN = 60_000
+  const HORA = 60 * MIN
+  const DIA = 24 * HORA
+  const hace = (ms: number) => new Date(AHORA.getTime() - ms).toISOString()
+
+  it("menos de 1 hora", () => {
+    expect(antiguedadDelDato(hace(0), AHORA)).toBe("Calculado hace menos de 1 hora")
+    expect(antiguedadDelDato(hace(59 * MIN), AHORA)).toBe("Calculado hace menos de 1 hora")
+    expect(antiguedadDelDato(hace(59 * MIN + 59_000), AHORA)).toBe("Calculado hace menos de 1 hora")
+  })
+
+  it("1 hora, en singular", () => {
+    expect(antiguedadDelDato(hace(HORA), AHORA)).toBe("Calculado hace 1 hora")
+    expect(antiguedadDelDato(hace(119 * MIN), AHORA)).toBe("Calculado hace 1 hora")
+  })
+
+  it("de 2 a 47 horas, en horas enteras (hacia abajo)", () => {
+    expect(antiguedadDelDato(hace(2 * HORA), AHORA)).toBe("Calculado hace 2 horas")
+    expect(antiguedadDelDato(hace(31 * HORA), AHORA)).toBe("Calculado hace 31 horas")
+    expect(antiguedadDelDato(hace(31 * HORA + 59 * MIN), AHORA)).toBe("Calculado hace 31 horas")
+    expect(antiguedadDelDato(hace(47 * HORA + 59 * MIN), AHORA)).toBe("Calculado hace 47 horas")
+  })
+
+  it("desde 48 horas, en días enteros (hacia abajo)", () => {
+    expect(antiguedadDelDato(hace(48 * HORA), AHORA)).toBe("Calculado hace 2 días")
+    expect(antiguedadDelDato(hace(71 * HORA + 59 * MIN), AHORA)).toBe("Calculado hace 2 días")
+    expect(antiguedadDelDato(hace(72 * HORA), AHORA)).toBe("Calculado hace 3 días")
+    expect(antiguedadDelDato(hace(10 * DIA + 5 * HORA), AHORA)).toBe("Calculado hace 10 días")
+  })
+
+  it("el singular de días existe aunque con el umbral de 48 horas no se alcance", () => {
+    expect(TEXTOS_ANTIGUEDAD.dias(1)).toBe("Calculado hace 1 día")
+    expect(TEXTOS_ANTIGUEDAD.horas(1)).toBe("Calculado hace 1 hora")
+  })
+
+  it("entiende el formato que devuelve Supabase (microsegundos y desfase)", () => {
+    expect(antiguedadDelDato("2026-11-23T04:59:03.123456+00:00", AHORA)).toBe("Calculado hace 31 horas")
+    // 00:00 en Lima (-05:00) del 23-nov = 05:00Z.
+    expect(antiguedadDelDato("2026-11-23T00:00:00-05:00", AHORA)).toBe("Calculado hace 31 horas")
+  })
+
+  it("fecha futura (reloj desfasado): null", () => {
+    expect(antiguedadDelDato(new Date(AHORA.getTime() + MIN).toISOString(), AHORA)).toBeNull()
+    expect(antiguedadDelDato(new Date(AHORA.getTime() + 5 * DIA).toISOString(), AHORA)).toBeNull()
+  })
+
+  it("nulo, ausente o inválido: null", () => {
+    for (const valor of [null, undefined, "", "   ", "no es una fecha", "2026-13-45T00:00:00Z", "2026-11-23", "31"]) {
+      expect(antiguedadDelDato(valor, AHORA)).toBeNull()
+    }
+  })
+
+  it("una hora actual inválida: null", () => {
+    expect(antiguedadDelDato(hace(HORA), new Date("no es una fecha"))).toBeNull()
+  })
+
+  it("ningún texto usa «hoy», «probabilidad» ni «diagnóstico»", () => {
+    const textos = [
+      TEXTOS_ANTIGUEDAD.menosDeUnaHora,
+      TEXTOS_ANTIGUEDAD.horas(1),
+      TEXTOS_ANTIGUEDAD.horas(31),
+      TEXTOS_ANTIGUEDAD.dias(1),
+      TEXTOS_ANTIGUEDAD.dias(3),
+    ]
+    for (const texto of textos) expect(texto).not.toMatch(/\bhoy\b|probabilidad|diagn[oó]stic/i)
   })
 })
 

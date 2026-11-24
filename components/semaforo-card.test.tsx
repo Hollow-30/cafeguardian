@@ -120,6 +120,76 @@ describe("SemaforoCard con dato", () => {
   })
 })
 
+describe("SemaforoCard: antigüedad del dato vencido", () => {
+  // 18:00Z = 13:00 en Lima: 31 horas después de las 11:00Z del 22-nov (06:00 en Lima).
+  const AHORA = new Date("2026-11-23T18:00:00Z")
+  const vencido = (calculadoEn?: string | null): EstadoDeTarjeta => ({
+    tipo: "dato_vencido",
+    zona,
+    riesgo: { ...riesgo("favorable", 0.62), fecha: "2026-11-22", ...(calculadoEn === undefined ? {} : { calculadoEn }) },
+    diasAtraso: 1,
+  })
+
+  it("dato vencido: «Calculado hace 31 horas» justo debajo de «Dato del …»", () => {
+    render(<SemaforoCard estado={vencido("2026-11-22T11:00:00+00:00")} ahora={AHORA} />)
+
+    const fecha = screen.getByText(TEXTOS_SEMAFORO.datoVencido("22 de noviembre"))
+    const antiguedad = screen.getByText("Calculado hace 31 horas")
+    expect(fecha.nextElementSibling).toBe(antiguedad)
+  })
+
+  it("dato vencido de varios días: lo dice en días", () => {
+    render(<SemaforoCard estado={vencido("2026-11-20T18:00:00Z")} ahora={AHORA} />)
+
+    expect(screen.getByText("Calculado hace 3 días")).toBeInTheDocument()
+  })
+
+  it("es texto normal, legible por lectores de pantalla y con el estilo secundario de la nota de ayer", () => {
+    render(<SemaforoCard estado={vencido("2026-11-22T11:00:00Z")} ahora={AHORA} />)
+
+    const antiguedad = screen.getByText("Calculado hace 31 horas")
+    expect(antiguedad).toHaveClass("text-sm", "text-coffee-700")
+    expect(antiguedad.closest("[aria-hidden='true']")).toBeNull()
+    expect(antiguedad.textContent).not.toMatch(/\bhoy\b|probabilidad|diagn[oó]stic/i)
+  })
+
+  it("sin pasar `ahora` usa la hora actual", () => {
+    render(<SemaforoCard estado={vencido("2020-01-01T00:00:00Z")} />)
+
+    expect(screen.getByText(/^Calculado hace \d+ días$/)).toBeInTheDocument()
+  })
+
+  it.each([
+    ["nulo", null],
+    ["ausente", undefined],
+    ["inválido", "no es una fecha"],
+    ["futuro", "2026-11-25T00:00:00Z"],
+  ])("dato vencido con calculadoEn %s: no muestra la línea", (_nombre, calculadoEn) => {
+    render(<SemaforoCard estado={vencido(calculadoEn)} ahora={AHORA} />)
+
+    expect(screen.getByText(TEXTOS_SEMAFORO.datoVencido("22 de noviembre"))).toBeInTheDocument()
+    expect(screen.queryByText(/Calculado hace/)).not.toBeInTheDocument()
+  })
+
+  it.each([false, true])("dato de hoy (esDeAyer: %s): no muestra la línea aunque traiga calculadoEn", (esDeAyer) => {
+    const estado: EstadoDeTarjeta = {
+      tipo: "dato_de_hoy",
+      zona,
+      riesgo: { ...riesgo("favorable", 0.62), calculadoEn: "2026-11-22T11:00:00Z" },
+      esDeAyer,
+    }
+    render(<SemaforoCard estado={estado} ahora={AHORA} />)
+
+    expect(screen.queryByText(/Calculado hace/)).not.toBeInTheDocument()
+  })
+
+  it("zona sin dato: no muestra la línea", () => {
+    render(<SemaforoCard estado={{ tipo: "zona_sin_dato", zona }} ahora={AHORA} />)
+
+    expect(screen.queryByText(/Calculado hace/)).not.toBeInTheDocument()
+  })
+})
+
 describe("SemaforoCard sin dato", () => {
   const estado: EstadoDeTarjeta = { tipo: "zona_sin_dato", zona }
 

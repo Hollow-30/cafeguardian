@@ -4,6 +4,7 @@ import type { EstadoSemaforo } from "@/lib/semaforo/estado"
 import {
   CREDITO_CLIMA,
   TEXTOS_SEMAFORO,
+  antiguedadDelDato,
   vistaDelRiesgo,
   type IconoSemaforo,
 } from "@/lib/semaforo/presentacion"
@@ -39,7 +40,9 @@ function CreditoClima() {
 
 // Los colores del semáforo van en hexadecimal desde presentacion.ts (contraste verificado en pruebas);
 // el resto usa la paleta coffee-*. Los textos salen todos de presentacion.ts.
-export function SemaforoCard({ estado }: { estado: EstadoDeTarjeta }) {
+// `ahora` es opcional para poder probar con una hora fija; sin él se usa la hora del servidor
+// (la tarjeta no es un componente cliente, así que no hay desfase entre servidor y navegador).
+export function SemaforoCard({ estado, ahora = new Date() }: { estado: EstadoDeTarjeta; ahora?: Date }) {
   if (estado.tipo === "zona_sin_dato") {
     return (
       <section aria-labelledby="semaforo-sin-dato" className="rounded-2xl border border-coffee-200 bg-coffee-50 p-5 sm:p-6">
@@ -58,6 +61,8 @@ export function SemaforoCard({ estado }: { estado: EstadoDeTarjeta }) {
     estado.tipo === "dato_vencido"
       ? TEXTOS_SEMAFORO.datoVencido(vista.fechaTexto)
       : TEXTOS_SEMAFORO.datoDelDia(vista.fechaTexto)
+  // Solo con dato vencido; sin calculado_en válido (o futuro) es null y no se muestra nada.
+  const antiguedad = estado.tipo === "dato_vencido" ? antiguedadDelDato(estado.riesgo.calculadoEn, ahora) : null
 
   return (
     <section aria-labelledby="semaforo-nivel" className="rounded-2xl border border-coffee-200 bg-white p-5 sm:p-6">
@@ -97,6 +102,7 @@ export function SemaforoCard({ estado }: { estado: EstadoDeTarjeta }) {
       <p className="mt-1 text-lg font-semibold leading-7 text-coffee-950">{presentacion.queHacer}</p>
 
       <p className="mt-5 text-sm font-semibold text-coffee-900">{fecha}</p>
+      {antiguedad && <p className="mt-1 text-sm text-coffee-700">{antiguedad}</p>}
       {estado.tipo === "dato_de_hoy" && estado.esDeAyer && (
         <p className="mt-1 text-sm text-coffee-700">{TEXTOS_SEMAFORO.notaDatoDeAyer}</p>
       )}

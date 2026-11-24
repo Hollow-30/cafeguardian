@@ -29,7 +29,7 @@ export async function leerSemaforo(supabase: SupabaseClient, userId: string): Pr
 
   const { data: fila, error: errorRiesgo } = await supabase
     .from("riesgo_diario")
-    .select("fecha, nivel, indice, motivo, detalle")
+    .select("fecha, nivel, indice, motivo, detalle, calculado_en")
     .eq("zona_clima_id", zonaId)
     .order("fecha", { ascending: false })
     .limit(1)
@@ -43,6 +43,7 @@ export async function leerSemaforo(supabase: SupabaseClient, userId: string): Pr
     indice: number | string
     motivo: string
     detalle: Record<string, unknown> | null
+    calculado_en?: string | null
   }
   return {
     error: false,
@@ -53,6 +54,8 @@ export async function leerSemaforo(supabase: SupabaseClient, userId: string): Pr
       indice: Number(riesgo.indice),
       motivo: riesgo.motivo,
       detalle: riesgo.detalle,
+      // Solo si viene un texto: así la clave no aparece cuando la columna falta o es nula.
+      ...(typeof riesgo.calculado_en === "string" ? { calculadoEn: riesgo.calculado_en } : {}),
     },
   }
 }
