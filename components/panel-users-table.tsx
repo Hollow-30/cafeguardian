@@ -5,15 +5,15 @@ import { useState } from "react"
 import type { PanelUsuario } from "@/lib/panel/users"
 
 function planLabel(user: PanelUsuario) {
-  if (user.plan_nombre) return user.plan_nombre
   if (user.rol === "superadministrador") return "—"
-  return "Sin plan / Gratis"
+  if (user.suscripcion_estado === "activa" && user.plan_nombre) return user.plan_nombre
+  return "Gratis"
 }
 
 function estadoLabel(user: PanelUsuario) {
   if (user.rol === "superadministrador") return "Equipo"
-  if (!user.suscripcion_estado) return "Sin suscripción"
-  return user.suscripcion_estado
+  if (user.suscripcion_estado === "activa") return "activa"
+  return "Gratis"
 }
 
 export function PanelUsersTable({ users }: { users: PanelUsuario[] }) {

@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest"
 import { buildPanelUsuarios, summarizePanelUsuarios } from "./users"
 
 describe("buildPanelUsuarios", () => {
+  const now = new Date("2026-11-18T18:00:00.000Z")
+
   it("lista usuarios con plan activo, correo y fotos", () => {
     const users = buildPanelUsuarios({
       profiles: [
@@ -18,6 +20,7 @@ describe("buildPanelUsuarios", () => {
       ],
       fotos: [{ profile_id: "a" }, { profile_id: "a" }, { profile_id: "b" }],
       emailsById: { a: "ana@example.com", b: "luis@example.com" },
+      now,
     })
 
     expect(users).toEqual([
@@ -45,7 +48,32 @@ describe("buildPanelUsuarios", () => {
       },
     ])
   })
+
+  it("trata suscripciones vencidas como Gratis", () => {
+    const users = buildPanelUsuarios({
+      profiles: [{ id: "a", full_name: "Ana Demo", rol: "caficultor" }],
+      suscripciones: [
+        {
+          profile_id: "a",
+          estado: "vencida",
+          termina_en: "2026-12-02",
+          planes: { codigo: "prueba_30", nombre: "Plan de prueba 30 días" },
+        },
+      ],
+      fotos: [],
+      emailsById: { a: "ana@example.com" },
+      now,
+    })
+
+    expect(users[0]).toMatchObject({
+      plan_codigo: null,
+      plan_nombre: null,
+      suscripcion_estado: null,
+      termina_en: null,
+    })
+  })
 })
+
 
 describe("summarizePanelUsuarios", () => {
   it("cuenta caficultores y premium activos", () => {
