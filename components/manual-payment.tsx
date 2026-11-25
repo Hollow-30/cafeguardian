@@ -5,27 +5,55 @@ import Link from "next/link"
 import { CheckCircle2, FileUp, ShieldCheck } from "lucide-react"
 import { paymentContent as copy } from "@/content/payments"
 import { compressImage } from "@/lib/image/compress"
+import { fetchMisPagos, sendPaymentToServer } from "@/lib/payments/api-client"
 import { enqueuePayment, retryOutbox } from "@/lib/payments/outbox"
-import { listPayments, savePayment } from "@/lib/payments/paymentsRepo"
+import { listPayments, savePayment, updatePaymentStatus } from "@/lib/payments/paymentsRepo"
 import type { PaymentRequest } from "@/lib/payments/types"
+import type { PagoPublico } from "@/lib/payments/server"
 import { validateReceipt } from "@/lib/payments/validate"
 
 const steps = ["Instrucciones", "Comprobante", "Estado"]
+
+function statusLabel(status: string) {
+  if (status === "approved" || status === "aprobado") return "Aprobado"
+  if (status === "rejected" || status === "rechazado") return "Rechazado"
+  if (status === "under_review" || status === "en_revision") return "En revisión"
+  return "Enviado"
+}
 
 export function ManualPayment() {
   const [step, setStep] = useState(0)
   const [method, setMethod] = useState<"yape" | "transfer">("yape")
   const [file, setFile] = useState<File | null>(null)
   const [error, setError] = useState("")
-  const [saved, setSaved] = useState<PaymentRequest | null>(null)
-  const [payments, setPayments] = useState<PaymentRequest[]>([])
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState<PaymentRequest | PagoPublico | null>(null)
+  const [payments, setPayments] = useState<Array<PaymentRequest | PagoPublico>>([])
+
+  async function refreshPayments() {
+    try {
+      if (navigator.onLine) {
+        const remote = await fetchMisPagos()
+        setPayments(remote)
+        return
+      }
+    } catch {
+      // Fallback local.
+    }
+    setPayments(await listPayments().catch(() => []))
+  }
 
   useEffect(() => {
-    listPayments().then(setPayments).catch(() => setPayments([]))
+    void refreshPayments()
   }, [step])
 
   useEffect(() => {
-    const retry = () => { void retryOutbox(true, async () => undefined) }
+    const retry = () => {
+      void retryOutbox(true, async (payment) => {
+        const item = await sendPaymentToServer(payment)
+        await updatePaymentStatus(payment.id, item.status)
+      }).then(() => refreshPayments())
+    }
     window.addEventListener("online", retry)
     return () => window.removeEventListener("online", retry)
   }, [])
@@ -38,15 +66,34 @@ export function ManualPayment() {
       return
     }
     setError("")
-    setFile(selected.type.startsWith("image/") ? new File([await compressImage(selected)], selected.name, { type: selected.type }) : selected)
+    setFile(
+      selected.type.startsWith("image/")
+        ? new File([await compressImage(selected)], selected.name, { type: selected.type })
+        : selected,
+    )
   }
 
   async function submit() {
-    if (!file) return
-    const payment = await savePayment({ amount: 12, method, receipt: file, receiptName: file.name })
-    if (!navigator.onLine) enqueuePayment(payment)
-    setSaved(payment)
-    setStep(2)
+    if (!file || saving) return
+    setSaving(true)
+    setError("")
+    try {
+      const local = await savePayment({ amount: 12, method, receipt: file, receiptName: file.name })
+      if (!navigator.onLine) {
+        enqueuePayment(local)
+        setSaved(local)
+        setStep(2)
+        return
+      }
+      const remote = await sendPaymentToServer(local)
+      await updatePaymentStatus(local.id, remote.status)
+      setSaved(remote)
+      setStep(2)
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "No se pudo enviar el comprobante.")
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -124,8 +171,13 @@ export function ManualPayment() {
             </label>
             {error && <p role="alert" className="rounded-xl bg-coffee-50 p-3 text-coffee-800">{error}</p>}
             {file && (
-              <button type="button" onClick={() => void submit()} className="min-h-12 rounded-xl bg-coffee-800 px-5 py-3 font-bold text-white hover:bg-coffee-900">
-                {copy.send}
+              <button
+                type="button"
+                disabled={saving}
+                onClick={() => void submit()}
+                className="min-h-12 rounded-xl bg-coffee-800 px-5 py-3 font-bold text-white hover:bg-coffee-900 disabled:opacity-60"
+              >
+                {saving ? "Enviando…" : copy.send}
               </button>
             )}
             <p className="rounded-xl bg-coffee-50 p-3 text-sm text-coffee-950">{copy.offline}</p>
@@ -135,10 +187,17 @@ export function ManualPayment() {
           <section className="flex flex-col gap-5 rounded-2xl border border-coffee-100 bg-coffee-50 p-5 shadow-sm">
             <CheckCircle2 className="text-coffee-700" aria-hidden="true" />
             <h2 className="text-2xl font-bold">Solicitud enviada</h2>
-            <p>Código: <strong>{saved.reference}</strong></p>
-            <p>Estado: <strong>Enviado</strong></p>
-            <p className="rounded-xl bg-white p-3">{copy.offline}</p>
-            <Link href="/mis-pagos" className="inline-flex min-h-12 items-center justify-center rounded-xl bg-coffee-800 px-5 py-3 text-center font-bold text-white hover:bg-coffee-900">
+            <p>
+              Código: <strong>{saved.reference}</strong>
+            </p>
+            <p>
+              Estado: <strong>{statusLabel(saved.status)}</strong>
+            </p>
+            <p className="rounded-xl bg-white p-3">Un administrador revisará tu comprobante y activará Premium si es válido.</p>
+            <Link
+              href="/mis-pagos"
+              className="inline-flex min-h-12 items-center justify-center rounded-xl bg-coffee-800 px-5 py-3 text-center font-bold text-white hover:bg-coffee-900"
+            >
               {copy.myPayments}
             </Link>
           </section>
@@ -156,7 +215,7 @@ export function ManualPayment() {
               <article key={payment.id} className="rounded-xl border border-coffee-100 p-4">
                 <div className="flex justify-between gap-3">
                   <strong>{payment.reference}</strong>
-                  <span>{payment.status}</span>
+                  <span>{statusLabel(payment.status)}</span>
                 </div>
                 <p className="text-sm text-slate-600">{payment.receiptName}</p>
               </article>
