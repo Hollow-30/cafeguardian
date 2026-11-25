@@ -39,7 +39,15 @@ describe("acceso desde la portada", () => {
     render(<AuthForm mode="register" />)
     submit("register")
     expect(await screen.findByRole("alert")).toHaveTextContent("Revisa tu correo")
-    expect(mocks.signUp).toHaveBeenCalledWith(expect.objectContaining({ email: "ana@example.com", options: expect.objectContaining({ data: expect.objectContaining({ full_name: "Ana" }) }) }))
+    expect(mocks.signUp).toHaveBeenCalledWith(
+      expect.objectContaining({
+        email: "ana@example.com",
+        options: expect.objectContaining({
+          data: expect.objectContaining({ full_name: "Ana" }),
+          emailRedirectTo: expect.stringContaining("/auth/confirm?next="),
+        }),
+      }),
+    )
     expect(mocks.push).not.toHaveBeenCalled()
   })
   it("recupera el botón si no hay conexión", async () => {

@@ -3,11 +3,12 @@
 import Image from "next/image"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { type FormEvent, useState } from "react"
+import { type FormEvent, useEffect, useState } from "react"
 import { ArrowLeft, ArrowRight, Eye, EyeOff, Loader2, Wifi } from "lucide-react"
 import { BrandMark } from "@/components/brand-mark"
 import { authContent as copy } from "@/content/auth"
 import { createClient } from "@/lib/supabase/client"
+import { authEmailRedirectTo } from "@/lib/auth/password-recovery"
 import { postLoginPathForRequest, resolveRole } from "@/lib/auth/roles"
 import { publicSignupUserMetadata } from "@/lib/auth/superadmin-provision"
 
@@ -24,6 +25,12 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
   const isRegister = mode === "register"
   const text = copy[mode]
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (params.get("error") === "confirmacion") setMessage(copy.confirmError)
+    else if (params.get("confirmed") === "1") setMessage(copy.confirmSuccess)
+  }, [])
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (loading) return
@@ -32,7 +39,14 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
     try {
       const supabase = createClient()
       const result = isRegister
-        ? await supabase.auth.signUp({ email, password, options: { data: publicSignupUserMetadata(name), emailRedirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL } })
+        ? await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+              data: publicSignupUserMetadata(name),
+              emailRedirectTo: authEmailRedirectTo(window.location.origin, "/"),
+            },
+          })
         : await supabase.auth.signInWithPassword({ email, password })
       if (result.error) {
         setMessage(result.error.message.includes("Invalid login") ? copy.invalidLogin : isRegister ? copy.registerError : copy.loginError)

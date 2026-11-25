@@ -39,7 +39,10 @@ export const authContent = {
   hidePassword: "Ocultar contraseña",
   invalidLogin: "El correo o la contraseña no son correctos.",
   checkEmail: "Revisa tu correo para confirmar tu cuenta antes de ingresar.",
+  confirmError: "No pudimos confirmar tu correo. El enlace puede haber vencido; crea la cuenta de nuevo o solicita otro correo.",
+  confirmSuccess: "Correo confirmado. Ya puedes ingresar a tu cuenta.",
   connectionError: "No pudimos conectar. Revisa tu conexión e inténtalo nuevamente.",
   loginError: "No pudimos ingresar. Revisa tus datos e inténtalo nuevamente.",
   registerError: "No pudimos crear la cuenta. Revisa tus datos o intenta ingresar si ya tienes una.",
 } as const
+
