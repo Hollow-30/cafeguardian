@@ -12,6 +12,7 @@ export const photoCopy = {
   lotePlaceholder: "Ej. Lote 3 o La Esperanza",
   tipsTitle: "Para una mejor foto",
   tips: ["Una sola hoja", "De cerca", "Con luz natural"],
+  consentLabel: "Autorizo usar esta foto de forma anónima para mejorar el modelo (opcional).",
   saved: "Foto guardada. Queda pendiente de análisis.",
   errors: {
     invalidType: "Elige una imagen JPG, PNG o WEBP.",

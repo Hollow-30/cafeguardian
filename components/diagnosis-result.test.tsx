@@ -13,7 +13,17 @@ describe("classification consumer compatibility", () => {
   ] as [MockScenario, string][])("renders mock scenario %s", async (scenario, expected) => {
     const classify = createLeafClassifier(createMockProvider(scenario))
     const result = await classify(new Blob(["leaf"], { type: "image/jpeg" }))
-    const html = renderToStaticMarkup(<DiagnosisResult {...result} src="/leaf.jpg" onSave={() => {}} onAnother={() => {}} />)
+    const html = renderToStaticMarkup(
+      <DiagnosisResult
+        {...result}
+        src="/leaf.jpg"
+        consentimientoAnonimo={false}
+        onConsentimientoChange={() => {}}
+        consentLabel="Consentimiento de prueba"
+        onSave={() => {}}
+        onAnother={() => {}}
+      />,
+    )
     expect(html).toContain(expected)
     expect(html).toContain("Resultado de demostración")
     expect(html).not.toContain("Ojo de gallo")
@@ -22,7 +32,17 @@ describe("classification consumer compatibility", () => {
   it("renders a replacement provider with the same props and no demo marker", async () => {
     const classify = createLeafClassifier(async () => ({ label: "rust", confidence: 60, isDemo: false }))
     const result = await classify(new Blob(["leaf"], { type: "image/jpeg" }))
-    const html = renderToStaticMarkup(<DiagnosisResult {...result} src="/leaf.jpg" onSave={() => {}} onAnother={() => {}} />)
+    const html = renderToStaticMarkup(
+      <DiagnosisResult
+        {...result}
+        src="/leaf.jpg"
+        consentimientoAnonimo={false}
+        onConsentimientoChange={() => {}}
+        consentLabel="Consentimiento de prueba"
+        onSave={() => {}}
+        onAnother={() => {}}
+      />,
+    )
     expect(html).toContain("Roya")
     expect(html).toContain("60%")
     expect(html).not.toContain("Resultado de demostración")

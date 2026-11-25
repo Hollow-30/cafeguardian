@@ -16,15 +16,16 @@ export type StoredDiagnosis = {
   createdAt: string
   lote: string
   note?: string
+  consentimientoAnonimo?: boolean
 }
 
 interface CafeGuardianDB extends DBSchema {
   photos: { key: string; value: StoredPhoto; indexes: { "by-created-at": string } }
-  diagnoses: { key: string; value: StoredDiagnosis; indexes: { "by-created-at": string } }
+  diagnoses: { key: string; value: StoredDiagnosis; indexes: { "by-created-at": string; "by-status": string } }
 }
 
 export function openCafeGuardianDB() {
-  return openDB<CafeGuardianDB>("cafe-guardian", 2, {
+  return openDB<CafeGuardianDB>("cafe-guardian", 3, {
     upgrade(db, _oldVersion, _newVersion, transaction) {
       if (!db.objectStoreNames.contains("photos")) {
         db.createObjectStore("photos", { keyPath: "id" })
@@ -40,6 +41,9 @@ export function openCafeGuardianDB() {
       const diagnoses = transaction.objectStore("diagnoses")
       if (!diagnoses.indexNames.contains("by-created-at")) {
         diagnoses.createIndex("by-created-at", "createdAt")
+      }
+      if (!diagnoses.indexNames.contains("by-status")) {
+        diagnoses.createIndex("by-status", "status")
       }
     },
   })

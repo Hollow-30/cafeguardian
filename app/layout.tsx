@@ -1,6 +1,7 @@
 import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
 import { AppNavigation } from '@/components/app-navigation'
+import { OfflineSync } from '@/components/offline-sync'
 import { resolveRole } from '@/lib/auth/roles'
 import { getAuthUser } from '@/lib/auth/session'
 import { brand } from '@/content/brand'
@@ -37,6 +38,7 @@ export default async function RootLayout({
     <html lang="es">
       <body className="antialiased">
         <AppNavigation role={user ? resolveRole(user) : null} user={user} />
+        <OfflineSync />
         {children}
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>

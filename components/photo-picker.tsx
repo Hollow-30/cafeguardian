@@ -97,6 +97,7 @@ export function PhotoPicker({ onBack, onSaved }: PhotoPickerProps) {
   const [error, setError] = useState("")
   const [classification, setClassification] = useState<Classification | null>(null)
   const [savedRemotely, setSavedRemotely] = useState(false)
+  const [consentimientoAnonimo, setConsentimientoAnonimo] = useState(false)
 
   useEffect(() => () => {
     if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current)
@@ -116,6 +117,7 @@ export function PhotoPicker({ onBack, onSaved }: PhotoPickerProps) {
     setPhotoId("")
     setClassification(null)
     setSavedRemotely(false)
+    setConsentimientoAnonimo(false)
     setError("")
     if (cameraRef.current) cameraRef.current.value = ""
     if (galleryRef.current) galleryRef.current.value = ""
@@ -165,6 +167,7 @@ export function PhotoPicker({ onBack, onSaved }: PhotoPickerProps) {
         lote: lote.trim(),
         resultadoEtiqueta: classification.label,
         confianza: classification.confidence,
+        consentimientoAnonimo,
       })
       await saveDiagnosis({
         photoId: remote.id,
@@ -174,6 +177,7 @@ export function PhotoPicker({ onBack, onSaved }: PhotoPickerProps) {
         isDemo: classification.isDemo,
         lote: lote.trim(),
         status: "synced",
+        consentimientoAnonimo,
       })
       setSavedRemotely(true)
       setStep("saved")
@@ -189,6 +193,7 @@ export function PhotoPicker({ onBack, onSaved }: PhotoPickerProps) {
           isDemo: classification.isDemo,
           lote: lote.trim(),
           status: "offline",
+          consentimientoAnonimo,
         })
         setSavedRemotely(false)
         setStep("saved")
@@ -266,6 +271,9 @@ export function PhotoPicker({ onBack, onSaved }: PhotoPickerProps) {
             label={classification.label}
             confidence={classification.confidence}
             isDemo={classification.isDemo}
+            consentimientoAnonimo={consentimientoAnonimo}
+            onConsentimientoChange={setConsentimientoAnonimo}
+            consentLabel={photoCopy.consentLabel}
             onSave={saveCurrentDiagnosis}
             onAnother={reset}
           />

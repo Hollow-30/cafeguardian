@@ -14,6 +14,24 @@ export async function listDiagnoses(): Promise<StoredDiagnosis[]> {
   return (await db.getAllFromIndex("diagnoses", "by-created-at")).reverse()
 }
 
+export async function listOfflineDiagnoses(): Promise<StoredDiagnosis[]> {
+  const db = await openCafeGuardianDB()
+  try {
+    return await db.getAllFromIndex("diagnoses", "by-status", "offline")
+  } catch {
+    return (await db.getAll("diagnoses")).filter((item) => item.status === "offline")
+  }
+}
+
+export async function markDiagnosisSynced(id: string, remotePhotoId: string): Promise<StoredDiagnosis | undefined> {
+  const db = await openCafeGuardianDB()
+  const diagnosis = await db.get("diagnoses", id)
+  if (!diagnosis) return undefined
+  const updated: StoredDiagnosis = { ...diagnosis, photoId: remotePhotoId, status: "synced" }
+  await db.put("diagnoses", updated)
+  return updated
+}
+
 export async function getDiagnosis(id: string) {
   const db = await openCafeGuardianDB()
   return db.get("diagnoses", id)
