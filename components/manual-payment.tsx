@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import { CheckCircle2, FileUp, ShieldCheck } from "lucide-react"
+import { CulqiSimulatorForm } from "@/components/culqi-simulator-form"
 import { paymentContent as copy } from "@/content/payments"
 import { compressImage } from "@/lib/image/compress"
 import { fetchMisPagos, sendPaymentToServer } from "@/lib/payments/api-client"
@@ -22,12 +23,14 @@ function statusLabel(status: string) {
 }
 
 export function ManualPayment() {
+  const [channel, setChannel] = useState<"manual" | "culqi">("culqi")
   const [step, setStep] = useState(0)
   const [method, setMethod] = useState<"yape" | "transfer">("yape")
   const [file, setFile] = useState<File | null>(null)
   const [error, setError] = useState("")
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState<PaymentRequest | PagoPublico | null>(null)
+  const [successMessage, setSuccessMessage] = useState("")
   const [payments, setPayments] = useState<Array<PaymentRequest | PagoPublico>>([])
 
   async function refreshPayments() {
@@ -112,94 +115,148 @@ export function ManualPayment() {
           <h1 className="text-3xl font-bold">{copy.title}</h1>
           <p className="text-sm text-slate-600">{copy.privacy}</p>
         </header>
-        <nav aria-label="Pasos" className="grid grid-cols-3 gap-2">
-          {steps.map((label, index) => (
-            <div
-              key={label}
-              aria-current={index === step ? "step" : undefined}
-              className={`rounded-xl border p-3 text-center text-sm font-bold ${
-                index === step ? "border-coffee-700 bg-coffee-50 text-coffee-950" : "border-coffee-100 text-slate-500"
-              }`}
-            >
-              {index + 1}. {label}
-            </div>
-          ))}
-        </nav>
-        {step === 0 && (
-          <section className="flex flex-col gap-6 rounded-2xl border border-coffee-100 p-5 shadow-sm">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold">{copy.amountLabel}</h2>
-              <strong className="text-2xl">{copy.amount}</strong>
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <button
-                type="button"
-                aria-pressed={method === "yape"}
-                onClick={() => setMethod("yape")}
-                className={`min-h-12 rounded-xl border p-4 text-left font-bold ${
-                  method === "yape" ? "border-coffee-700 bg-coffee-50" : "border-coffee-100"
-                }`}
-              >
-                {copy.yapeTitle}
-                <span className="mt-1 block text-sm font-normal">{copy.yapeNumber}</span>
-                <span className="mt-1 block text-sm font-normal">{copy.qrLabel}</span>
-              </button>
-              <button
-                type="button"
-                aria-pressed={method === "transfer"}
-                onClick={() => setMethod("transfer")}
-                className={`min-h-12 rounded-xl border p-4 text-left font-bold ${
-                  method === "transfer" ? "border-coffee-700 bg-coffee-50" : "border-coffee-100"
-                }`}
-              >
-                {copy.transferTitle}
-                <span className="mt-1 block text-sm font-normal">{copy.bankData}</span>
-              </button>
-            </div>
-            <button type="button" onClick={() => setStep(1)} className="min-h-12 rounded-xl bg-coffee-800 px-5 py-3 font-bold text-white hover:bg-coffee-900">
-              {copy.next}
-            </button>
-          </section>
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            aria-pressed={channel === "culqi"}
+            onClick={() => {
+              setChannel("culqi")
+              setStep(0)
+              setSuccessMessage("")
+            }}
+            className={`min-h-11 rounded-xl border px-3 text-sm font-bold ${
+              channel === "culqi" ? "border-coffee-700 bg-coffee-50 text-coffee-950" : "border-coffee-100 text-slate-600"
+            }`}
+          >
+            Tarjeta (Culqi sim)
+          </button>
+          <button
+            type="button"
+            aria-pressed={channel === "manual"}
+            onClick={() => {
+              setChannel("manual")
+              setStep(0)
+              setSuccessMessage("")
+            }}
+            className={`min-h-11 rounded-xl border px-3 text-sm font-bold ${
+              channel === "manual" ? "border-coffee-700 bg-coffee-50 text-coffee-950" : "border-coffee-100 text-slate-600"
+            }`}
+          >
+            Yape / Transferencia
+          </button>
+        </div>
+
+        {channel === "culqi" && step !== 2 && (
+          <CulqiSimulatorForm
+            onSuccess={(pago, message) => {
+              setSaved(pago)
+              setSuccessMessage(message)
+              setStep(2)
+              void refreshPayments()
+            }}
+          />
         )}
-        {step === 1 && (
-          <section className="flex flex-col gap-5 rounded-2xl border border-coffee-100 p-5 shadow-sm">
-            <h2 className="text-xl font-bold">{copy.receiptTitle}</h2>
-            <p className="text-slate-600">{copy.receiptHelp}</p>
-            <label className="flex min-h-32 cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-coffee-700 bg-coffee-50/50 p-5 text-center font-bold">
-              <FileUp aria-hidden="true" />
-              {file?.name ?? copy.chooseFile}
-              <input
-                className="sr-only"
-                type="file"
-                accept="image/jpeg,image/png,image/webp,application/pdf"
-                onChange={(event) => void handleFile(event.target.files?.[0])}
-              />
-            </label>
-            {error && <p role="alert" className="rounded-xl bg-coffee-50 p-3 text-coffee-800">{error}</p>}
-            {file && (
-              <button
-                type="button"
-                disabled={saving}
-                onClick={() => void submit()}
-                className="min-h-12 rounded-xl bg-coffee-800 px-5 py-3 font-bold text-white hover:bg-coffee-900 disabled:opacity-60"
-              >
-                {saving ? "Enviando…" : copy.send}
-              </button>
+
+        {channel === "manual" && (
+          <>
+            <nav aria-label="Pasos" className="grid grid-cols-3 gap-2">
+              {steps.map((label, index) => (
+                <div
+                  key={label}
+                  aria-current={index === step ? "step" : undefined}
+                  className={`rounded-xl border p-3 text-center text-sm font-bold ${
+                    index === step ? "border-coffee-700 bg-coffee-50 text-coffee-950" : "border-coffee-100 text-slate-500"
+                  }`}
+                >
+                  {index + 1}. {label}
+                </div>
+              ))}
+            </nav>
+            {step === 0 && (
+              <section className="flex flex-col gap-6 rounded-2xl border border-coffee-100 p-5 shadow-sm">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xl font-bold">{copy.amountLabel}</h2>
+                  <strong className="text-2xl">{copy.amount}</strong>
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <button
+                    type="button"
+                    aria-pressed={method === "yape"}
+                    onClick={() => setMethod("yape")}
+                    className={`min-h-12 rounded-xl border p-4 text-left font-bold ${
+                      method === "yape" ? "border-coffee-700 bg-coffee-50" : "border-coffee-100"
+                    }`}
+                  >
+                    {copy.yapeTitle}
+                    <span className="mt-1 block text-sm font-normal">{copy.yapeNumber}</span>
+                    <span className="mt-1 block text-sm font-normal">{copy.qrLabel}</span>
+                  </button>
+                  <button
+                    type="button"
+                    aria-pressed={method === "transfer"}
+                    onClick={() => setMethod("transfer")}
+                    className={`min-h-12 rounded-xl border p-4 text-left font-bold ${
+                      method === "transfer" ? "border-coffee-700 bg-coffee-50" : "border-coffee-100"
+                    }`}
+                  >
+                    {copy.transferTitle}
+                    <span className="mt-1 block text-sm font-normal">{copy.bankData}</span>
+                  </button>
+                </div>
+                <button type="button" onClick={() => setStep(1)} className="min-h-12 rounded-xl bg-coffee-800 px-5 py-3 font-bold text-white hover:bg-coffee-900">
+                  {copy.next}
+                </button>
+              </section>
             )}
-            <p className="rounded-xl bg-coffee-50 p-3 text-sm text-coffee-950">{copy.offline}</p>
-          </section>
+            {step === 1 && (
+              <section className="flex flex-col gap-5 rounded-2xl border border-coffee-100 p-5 shadow-sm">
+                <h2 className="text-xl font-bold">{copy.receiptTitle}</h2>
+                <p className="text-slate-600">{copy.receiptHelp}</p>
+                <label className="flex min-h-32 cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-coffee-700 bg-coffee-50/50 p-5 text-center font-bold">
+                  <FileUp aria-hidden="true" />
+                  {file?.name ?? copy.chooseFile}
+                  <input
+                    className="sr-only"
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,application/pdf"
+                    onChange={(event) => void handleFile(event.target.files?.[0])}
+                  />
+                </label>
+                {error && <p role="alert" className="rounded-xl bg-coffee-50 p-3 text-coffee-800">{error}</p>}
+                {file && (
+                  <button
+                    type="button"
+                    disabled={saving}
+                    onClick={() => void submit()}
+                    className="min-h-12 rounded-xl bg-coffee-800 px-5 py-3 font-bold text-white hover:bg-coffee-900 disabled:opacity-60"
+                  >
+                    {saving ? "Enviando…" : copy.send}
+                  </button>
+                )}
+                <p className="rounded-xl bg-coffee-50 p-3 text-sm text-coffee-950">{copy.offline}</p>
+              </section>
+            )}
+          </>
         )}
+
         {step === 2 && saved && (
           <section className="flex flex-col gap-5 rounded-2xl border border-coffee-100 bg-coffee-50 p-5 shadow-sm">
             <CheckCircle2 className="text-coffee-700" aria-hidden="true" />
-            <h2 className="text-2xl font-bold">Solicitud enviada</h2>
+            <h2 className="text-2xl font-bold">
+              {channel === "culqi" ? "Pago simulado listo" : "Solicitud enviada"}
+            </h2>
             <p>
               Código: <strong>{saved.reference}</strong>
             </p>
             <p>
               Estado: <strong>{statusLabel(saved.status)}</strong>
             </p>
-            <p className="rounded-xl bg-white p-3">Un administrador revisará tu comprobante y activará Premium si es válido.</p>
+            <p className="rounded-xl bg-white p-3">
+              {successMessage ||
+                (channel === "culqi"
+                  ? copy.cardSuccess
+                  : "Un administrador revisará tu comprobante y activará Premium si es válido.")}
+            </p>
             <Link
               href="/mis-pagos"
               className="inline-flex min-h-12 items-center justify-center rounded-xl bg-coffee-800 px-5 py-3 text-center font-bold text-white hover:bg-coffee-900"

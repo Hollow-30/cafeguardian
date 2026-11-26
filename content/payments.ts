@@ -6,6 +6,10 @@ export const paymentContent = {
   referenceLabel: "Código de referencia",
   yapeTitle: "Yape",
   transferTitle: "Transferencia bancaria",
+  cardTitle: "Tarjeta (Culqi simulador)",
+  cardHint: "Sin llaves reales. Usa 4242 4242 4242 4242 · 12/30 · 123.",
+  cardPay: "Pagar S/12 (simulado)",
+  cardSuccess: "Pago simulado aceptado. Premium activado.",
   yapeNumber: "[Por definir]",
   qrLabel: "QR de Yape: [Por definir]",
   bankData: "Banco: [Por definir] · Cuenta: [Por definir] · Titular: [Por definir]",
@@ -19,3 +23,4 @@ export const paymentContent = {
   empty: "Aún no tienes solicitudes de pago.",
   reason: "Motivo del rechazo",
 } as const
+

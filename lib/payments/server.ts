@@ -5,7 +5,7 @@ export type PagoPublico = {
   id: string
   reference: string
   amount: number
-  method: "yape" | "transfer"
+  method: "yape" | "transfer" | "culqi_simulado"
   receiptName: string
   createdAt: string
   status: PaymentStatusUi
@@ -44,7 +44,12 @@ export function rowToPagoPublico(row: {
     id: row.id,
     reference: row.referencia,
     amount: Number(row.monto),
-    method: row.metodo === "transfer" ? "transfer" : "yape",
+    method:
+      row.metodo === "transfer"
+        ? "transfer"
+        : row.metodo === "culqi_simulado"
+          ? "culqi_simulado"
+          : "yape",
     receiptName: row.receipt_name,
     createdAt: row.created_at,
     status: mapPagoEstadoToUi(row.estado),

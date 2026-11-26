@@ -9,7 +9,7 @@ export type PanelPagoItem = {
   fullName: string
   reference: string
   amount: number
-  method: "yape" | "transfer"
+  method: "yape" | "transfer" | "culqi_simulado"
   receiptName: string
   createdAt: string
   status: "sent" | "under_review" | "approved" | "rejected"
@@ -104,7 +104,9 @@ export function PanelPagosTable({ items }: { items: PanelPagoItem[] }) {
                     <p className="text-xs text-slate-500">{item.receiptName}</p>
                   </td>
                   <td className="px-4 py-3 font-medium text-slate-700">{item.reference}</td>
-                  <td className="px-4 py-3 capitalize text-slate-700">{item.method}</td>
+                  <td className="px-4 py-3 capitalize text-slate-700">
+                    {item.method === "culqi_simulado" ? "Culqi (sim)" : item.method}
+                  </td>
                   <td className="px-4 py-3 text-slate-700">S/{item.amount}</td>
                   <td className="px-4 py-3 text-slate-700">{statusLabel(item.status)}</td>
                   <td className="px-4 py-3">
