@@ -6,7 +6,12 @@ import { useEffect, useState } from "react"
 import { ArrowLeft, ArrowRight, Share2, Trash2, ZoomIn, ZoomOut } from "lucide-react"
 import { diagnosisCopy, getDiagnosisOrigin } from "@/content/diagnosis"
 import { historyCopy } from "@/content/history"
-import { deleteFotoHistorial, fetchFotoHistorial, fetchFotosHistorial } from "@/lib/fotos/history-client"
+import {
+  deleteFotoHistorial,
+  fetchFotoHistorial,
+  fetchFotosHistorial,
+  updateFotoNota,
+} from "@/lib/fotos/history-client"
 import {
   localDiagnosisToEntry,
   mergeHistoryEntries,
@@ -113,8 +118,20 @@ export function DiagnosisDetail({ id }: { id: string }) {
 
   async function persistNote(value: string) {
     setNote(value)
+    const remoteId = entry?.remoteId ?? (entry?.source === "remote" ? entry.id : null)
+    if (remoteId) {
+      try {
+        await updateFotoNota(remoteId, value)
+      } catch {
+        // Si falla la nube, igual se intenta local.
+      }
+    }
     const local = await getDiagnosis(id)
     if (local) await updateDiagnosisNote(id, value)
+    else if (remoteId) {
+      const byRemote = await getDiagnosis(remoteId)
+      if (byRemote) await updateDiagnosisNote(byRemote.id, value)
+    }
   }
 
   async function removeEntry() {

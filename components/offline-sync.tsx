@@ -15,7 +15,8 @@ export function OfflineSync() {
     const run = () => {
       void syncOfflineDiagnoses()
       void retryOutbox(navigator.onLine, async (payment) => {
-        await sendPaymentToServer(payment)
+        const item = await sendPaymentToServer(payment)
+        return { id: item.id, status: item.status }
       })
     }
 

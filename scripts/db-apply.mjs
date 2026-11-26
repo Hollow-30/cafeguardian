@@ -27,6 +27,7 @@ const files =
           "supabase/migrations/20261112_profiles_zona_clima.sql",
           "supabase/migrations/20261117_prueba_30_al_registro.sql",
           "supabase/migrations/20261124_pagos_manuales.sql",
+          "supabase/migrations/20261125_notas_y_planes.sql",
         ]
       : null
 

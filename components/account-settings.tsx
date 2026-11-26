@@ -94,16 +94,34 @@ export function AccountSettings({ email: initialEmail, name: initialName, avatar
     setProfileError("")
 
     const emailChanged = email.trim() !== initialEmail
+    const fullName = name.trim()
     const { error } = await createClient().auth.updateUser({
       ...(emailChanged ? { email: email.trim() } : {}),
       data: {
-        full_name: name.trim(),
+        full_name: fullName,
         avatar_url: avatarUrl.trim() || null,
       },
     })
 
     if (error) {
       setProfileError(error.message)
+      setProfileLoading(false)
+      return
+    }
+
+    try {
+      const response = await fetch("/api/perfil", {
+        method: "PATCH",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ full_name: fullName }),
+      })
+      if (!response.ok) {
+        const body = (await response.json().catch(() => ({}))) as { error?: string }
+        throw new Error(body.error ?? "No se pudo sincronizar el nombre con el panel.")
+      }
+    } catch (cause) {
+      setProfileError(cause instanceof Error ? cause.message : "No se pudo sincronizar el nombre con el panel.")
       setProfileLoading(false)
       return
     }

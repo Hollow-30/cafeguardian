@@ -7,7 +7,7 @@ import { paymentContent as copy } from "@/content/payments"
 import { compressImage } from "@/lib/image/compress"
 import { fetchMisPagos, sendPaymentToServer } from "@/lib/payments/api-client"
 import { enqueuePayment, retryOutbox } from "@/lib/payments/outbox"
-import { listPayments, savePayment, updatePaymentStatus } from "@/lib/payments/paymentsRepo"
+import { listPayments, markPaymentSynced, savePayment } from "@/lib/payments/paymentsRepo"
 import type { PaymentRequest } from "@/lib/payments/types"
 import type { PagoPublico } from "@/lib/payments/server"
 import { validateReceipt } from "@/lib/payments/validate"
@@ -51,7 +51,7 @@ export function ManualPayment() {
     const retry = () => {
       void retryOutbox(true, async (payment) => {
         const item = await sendPaymentToServer(payment)
-        await updatePaymentStatus(payment.id, item.status)
+        return { id: item.id, status: item.status }
       }).then(() => refreshPayments())
     }
     window.addEventListener("online", retry)
@@ -78,7 +78,13 @@ export function ManualPayment() {
     setSaving(true)
     setError("")
     try {
-      const local = await savePayment({ amount: 12, method, receipt: file, receiptName: file.name })
+      const local = await savePayment({
+        amount: 12,
+        method,
+        receipt: file,
+        receiptName: file.name,
+        synced: false,
+      })
       if (!navigator.onLine) {
         enqueuePayment(local)
         setSaved(local)
@@ -86,7 +92,7 @@ export function ManualPayment() {
         return
       }
       const remote = await sendPaymentToServer(local)
-      await updatePaymentStatus(local.id, remote.status)
+      await markPaymentSynced(local.id, remote.id, remote.status)
       setSaved(remote)
       setStep(2)
     } catch (cause) {

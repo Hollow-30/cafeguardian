@@ -18,7 +18,7 @@ export async function GET(_request: Request, { params }: Params) {
   const { data: foto, error } = await supabase
     .from("fotos")
     .select(
-      "id, profile_id, zona_id, storage_path, content_type, byte_size, created_at, resultado_etiqueta, confianza, semaforo_dia, semaforo_fecha, zonas(etiqueta)",
+      "id, profile_id, zona_id, storage_path, content_type, byte_size, created_at, resultado_etiqueta, confianza, semaforo_dia, semaforo_fecha, nota, zonas(etiqueta)",
     )
     .eq("id", id)
     .maybeSingle()
@@ -47,8 +47,67 @@ export async function GET(_request: Request, { params }: Params) {
       semaforoDia: foto.semaforo_dia,
       semaforoFecha: foto.semaforo_fecha,
       zonaEtiqueta: zona?.etiqueta ?? null,
+      nota: foto.nota ?? null,
     }),
     content_url: `/api/fotos/${foto.id}/archivo`,
+  })
+}
+
+export async function PATCH(request: Request, { params }: Params) {
+  const user = await getAuthUser()
+  if (!user?.id) {
+    return NextResponse.json({ error: "No autenticado" }, { status: 401 })
+  }
+
+  const { id } = await params
+  let body: { nota?: string }
+  try {
+    body = await request.json()
+  } catch {
+    return NextResponse.json({ error: "Solicitud inválida." }, { status: 400 })
+  }
+
+  const nota = typeof body.nota === "string" ? body.nota.trim().slice(0, 2000) : ""
+  const supabase = await createClient()
+  const { data: foto, error } = await supabase
+    .from("fotos")
+    .select("id, profile_id")
+    .eq("id", id)
+    .maybeSingle()
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (!foto || !canAccessFoto({ user, fotoProfileId: foto.profile_id })) {
+    return NextResponse.json({ error: "Acceso denegado" }, { status: 403 })
+  }
+
+  const { data: updated, error: updateError } = await supabase
+    .from("fotos")
+    .update({ nota: nota || null })
+    .eq("id", id)
+    .select(
+      "id, profile_id, zona_id, storage_path, content_type, byte_size, created_at, resultado_etiqueta, confianza, semaforo_dia, semaforo_fecha, nota",
+    )
+    .single()
+
+  if (updateError || !updated) {
+    return NextResponse.json({ error: updateError?.message ?? "No se pudo guardar la nota." }, { status: 500 })
+  }
+
+  return NextResponse.json({
+    item: buildFotoHistoryRecord({
+      id: updated.id,
+      profileId: updated.profile_id,
+      zonaId: updated.zona_id,
+      storagePath: updated.storage_path,
+      contentType: updated.content_type ?? "application/octet-stream",
+      byteSize: updated.byte_size ?? 0,
+      createdAt: updated.created_at,
+      resultadoEtiqueta: updated.resultado_etiqueta,
+      confianza: updated.confianza === null || updated.confianza === undefined ? null : Number(updated.confianza),
+      semaforoDia: updated.semaforo_dia,
+      semaforoFecha: updated.semaforo_fecha,
+      nota: updated.nota ?? null,
+    }),
   })
 }
 

@@ -6,6 +6,8 @@ export type UploadFotoRegistroInput = {
   resultadoEtiqueta?: string | null
   confianza?: number | null
   consentimientoAnonimo?: boolean
+  semaforoDia?: string | null
+  semaforoFecha?: string | null
 }
 
 function extensionFor(type: string) {
@@ -25,6 +27,8 @@ export async function uploadFotoRegistro(input: UploadFotoRegistroInput): Promis
   if (input.confianza != null && Number.isFinite(input.confianza)) {
     form.append("confianza", String(input.confianza))
   }
+  if (input.semaforoDia) form.append("semaforo_dia", input.semaforoDia)
+  if (input.semaforoFecha) form.append("semaforo_fecha", input.semaforoFecha)
 
   let response: Response
   try {

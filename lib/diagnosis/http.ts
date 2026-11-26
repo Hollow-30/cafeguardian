@@ -14,8 +14,13 @@ export const createHttpProvider = (): ClassificationProvider => async (blob) => 
     throw new Error("No se pudo conectar con el servicio de diagnóstico. Comprueba tu conexión e inténtalo de nuevo.")
   }
   if (!response.ok) {
+    const payload = (await response.json().catch(() => ({}))) as { error?: string }
+    if (response.status === 403 && payload.error) {
+      throw new Error(payload.error)
+    }
     const messages: Record<number, string> = {
       401: "Inicia sesión para analizar la foto.",
+      403: "Has usado todas tus fotos gratuitas este mes.",
       413: "La foto supera el límite permitido.",
       415: "Usa una imagen JPEG, PNG o WebP.",
       422: "No se pudo leer la imagen. Selecciona otra foto.",

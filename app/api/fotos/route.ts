@@ -35,7 +35,7 @@ export async function GET(request: Request) {
   let query = supabase
     .from("fotos")
     .select(
-      "id, profile_id, zona_id, storage_path, content_type, byte_size, created_at, resultado_etiqueta, confianza, semaforo_dia, semaforo_fecha, estado, zonas(etiqueta)",
+      "id, profile_id, zona_id, storage_path, content_type, byte_size, created_at, resultado_etiqueta, confianza, semaforo_dia, semaforo_fecha, nota, estado, zonas(etiqueta)",
     )
     .order("created_at", { ascending: false })
 
@@ -65,6 +65,7 @@ export async function GET(request: Request) {
       semaforoDia: row.semaforo_dia,
       semaforoFecha: row.semaforo_fecha,
       zonaEtiqueta: zona?.etiqueta ?? null,
+      nota: (row as { nota?: string | null }).nota ?? null,
     })
   })
 

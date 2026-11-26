@@ -40,6 +40,23 @@ export async function fetchFotoHistorial(id: string): Promise<{
   }
 }
 
+export async function updateFotoNota(id: string, nota: string): Promise<FotoHistoryRecord> {
+  const response = await fetch(`/api/fotos/${id}`, {
+    method: "PATCH",
+    credentials: "same-origin",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ nota }),
+  })
+  const payload = (await response.json().catch(() => ({}))) as {
+    item?: FotoHistoryRecord
+    error?: string
+  }
+  if (!response.ok || !payload.item) {
+    throw new Error(payload.error ?? "No se pudo guardar la nota.")
+  }
+  return payload.item
+}
+
 export async function deleteFotoHistorial(id: string): Promise<void> {
   const response = await fetch(`/api/fotos/${id}`, {
     method: "DELETE",

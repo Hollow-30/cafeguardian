@@ -19,6 +19,13 @@ describe("real classification provider", () => {
     await expect(createHttpProvider()(photo)).rejects.toThrow()
   })
 
+  it("explica la cuota agotada en HTTP 403", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      Response.json({ error: "Has usado todas tus fotos gratuitas este mes." }, { status: 403 }),
+    )
+    await expect(createHttpProvider()(photo)).rejects.toThrow("fotos gratuitas")
+  })
+
   it.each([
     { label: "rust", confidence: 99, isDemo: true },
     { label: "rust", confidence: 101, isDemo: false },

@@ -22,6 +22,23 @@ describe("AccountSettings", () => {
   beforeEach(() => {
     mocks.updateUser.mockReset().mockResolvedValue({ error: null })
     mocks.refresh.mockReset()
+    vi.spyOn(globalThis, "fetch").mockImplementation(async (input) => {
+      const url = String(input)
+      if (url.includes("/api/planes/estado")) {
+        return Response.json({
+          user: { plan: "free", photosUsedThisMonth: 0 },
+          status: { plan: "free", isTrial: false, trialDaysRemaining: 0, premiumActive: false },
+          remaining: 10,
+          quota: 10,
+          planCodigo: null,
+          endsOn: null,
+        })
+      }
+      if (url.includes("/api/perfil")) {
+        return Response.json({ item: { id: "u1", full_name: "Ana Pérez" } })
+      }
+      return Response.json({})
+    })
   })
 
   it("guarda los datos de perfil y solicita confirmar un correo nuevo", async () => {
@@ -39,6 +56,7 @@ describe("AccountSettings", () => {
     expect(await screen.findByText(/Revisa tu correo para confirmar el cambio/)).toBeInTheDocument()
     expect(mocks.refresh).toHaveBeenCalledOnce()
   })
+
 
   it("no intenta cambiar la contraseña si la confirmación no coincide", async () => {
     render(<AccountSettings email="ana@example.com" name="Ana" avatarUrl="" />)

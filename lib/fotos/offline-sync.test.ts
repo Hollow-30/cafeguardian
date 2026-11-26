@@ -4,20 +4,37 @@ import { syncOfflineDiagnoses } from "./offline-sync"
 const mocks = vi.hoisted(() => ({
   listOfflineDiagnoses: vi.fn(),
   markDiagnosisSynced: vi.fn(),
+  saveDiagnosis: vi.fn(),
   uploadFotoRegistro: vi.fn(),
+  listPhotos: vi.fn(),
+  fetchSemaforoSnapshot: vi.fn(),
+  classifyLeaf: vi.fn(),
 }))
 
 vi.mock("@/lib/storage/diagnosesRepo", () => ({
   listOfflineDiagnoses: mocks.listOfflineDiagnoses,
   markDiagnosisSynced: mocks.markDiagnosisSynced,
+  saveDiagnosis: mocks.saveDiagnosis,
+}))
+vi.mock("@/lib/storage/photosRepo", () => ({
+  listPhotos: mocks.listPhotos,
 }))
 vi.mock("@/lib/fotos/upload-client", () => ({
   uploadFotoRegistro: mocks.uploadFotoRegistro,
+}))
+vi.mock("@/lib/fotos/semaforo-snapshot", () => ({
+  fetchSemaforoSnapshot: mocks.fetchSemaforoSnapshot,
+}))
+vi.mock("@/lib/diagnosis/classifyLeaf", () => ({
+  classifyLeaf: mocks.classifyLeaf,
 }))
 
 beforeEach(() => {
   vi.clearAllMocks()
   Object.defineProperty(globalThis.navigator, "onLine", { value: true, configurable: true })
+  mocks.listPhotos.mockResolvedValue([])
+  mocks.fetchSemaforoSnapshot.mockResolvedValue({ semaforoDia: "amarillo", semaforoFecha: "2026-11-25" })
+  mocks.listOfflineDiagnoses.mockResolvedValue([])
 })
 
 describe("syncOfflineDiagnoses", () => {
@@ -40,7 +57,11 @@ describe("syncOfflineDiagnoses", () => {
 
     await expect(syncOfflineDiagnoses()).resolves.toBe(1)
     expect(mocks.uploadFotoRegistro).toHaveBeenCalledWith(
-      expect.objectContaining({ consentimientoAnonimo: true, lote: "Lote 1" }),
+      expect.objectContaining({
+        consentimientoAnonimo: true,
+        lote: "Lote 1",
+        semaforoDia: "amarillo",
+      }),
     )
     expect(mocks.markDiagnosisSynced).toHaveBeenCalledWith("d1", "remote-1")
   })
