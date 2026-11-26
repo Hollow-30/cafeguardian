@@ -2,7 +2,7 @@
 
 import { CheckCircle2, CircleAlert, Leaf, RotateCcw, Save } from "lucide-react"
 import { diagnosisCopy, getDiagnosisExplanation, mapDiagnosisLabel, type DiagnosisKey } from "@/content/diagnosis"
-import { getResultPresentation } from "@/lib/diagnosis/presentation"
+import { formatConfidence, getResultPresentation } from "@/lib/diagnosis/presentation"
 import { Button } from "@/components/ui/button"
 
 type ResultBadgeProps = { label: DiagnosisKey; confidence: number }
@@ -26,11 +26,12 @@ export function ResultBadge({ label, confidence }: ResultBadgeProps) {
 type ConfidenceBarProps = { confidence: number }
 
 export function ConfidenceBar({ confidence }: ConfidenceBarProps) {
+  const formattedConfidence = formatConfidence(confidence)
   return (
-    <div aria-label={`Confianza ${confidence}%`} className="flex flex-col gap-2">
+    <div aria-label={`Confianza ${formattedConfidence}%`} className="flex flex-col gap-2">
       <div className="flex justify-between text-sm font-semibold text-coffee-950">
         <span>Confianza</span>
-        <span>{confidence}%</span>
+        <span>{formattedConfidence}%</span>
       </div>
       <div className="h-4 overflow-hidden rounded-full bg-slate-200">
         <div className="h-full rounded-full bg-coffee-700 transition-all" style={{ width: `${Math.min(100, Math.max(0, confidence))}%` }} />

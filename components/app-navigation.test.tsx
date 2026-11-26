@@ -1,10 +1,11 @@
 // @vitest-environment jsdom
 import "@testing-library/jest-dom/vitest"
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react"
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { AppNavigation } from "./app-navigation"
 
 const mocks = vi.hoisted(() => ({
+  pathname: "/historial/diagnostico-1",
   replace: vi.fn(),
   refresh: vi.fn(),
   signOut: vi.fn(),
@@ -13,7 +14,7 @@ const mocks = vi.hoisted(() => ({
 afterEach(cleanup)
 
 vi.mock("next/navigation", () => ({
-  usePathname: () => "/historial/diagnostico-1",
+  usePathname: () => mocks.pathname,
   useRouter: () => ({ replace: mocks.replace, refresh: mocks.refresh }),
 }))
 vi.mock("@/lib/supabase/client", () => ({
@@ -22,6 +23,7 @@ vi.mock("@/lib/supabase/client", () => ({
 
 describe("AppNavigation", () => {
   beforeEach(() => {
+    mocks.pathname = "/historial/diagnostico-1"
     mocks.replace.mockReset()
     mocks.refresh.mockReset()
     mocks.signOut.mockReset().mockResolvedValue({ error: null })
@@ -44,6 +46,34 @@ describe("AppNavigation", () => {
     expect(screen.getByRole("link", { name: "Panel del equipo" })).toHaveAttribute("href", "/panel")
     expect(screen.queryByRole("link", { name: "Ingresar" })).not.toBeInTheDocument()
     expect(screen.queryByRole("link", { name: "Crear cuenta" })).not.toBeInTheDocument()
+  })
+
+  const enlacesPrincipales = () =>
+    within(screen.getByRole("navigation", { name: "Navegación principal" }))
+      .getAllByRole("link")
+      .map((enlace) => enlace.textContent)
+
+  it("el caficultor ve Inicio · Semáforo · Historial, en ese orden y sin el panel", () => {
+    render(<AppNavigation role="caficultor" />)
+
+    expect(enlacesPrincipales()).toEqual(["Inicio", "Semáforo", "Historial"])
+    expect(screen.getByRole("link", { name: "Semáforo" })).toHaveAttribute("href", "/semaforo")
+  })
+
+  it("el superadministrador NO ve «Semáforo»: su menú sigue siendo Inicio · Historial · Panel del equipo", () => {
+    render(<AppNavigation role="superadministrador" />)
+
+    expect(enlacesPrincipales()).toEqual(["Inicio", "Historial", "Panel del equipo"])
+    expect(screen.queryByRole("link", { name: "Semáforo" })).not.toBeInTheDocument()
+  })
+
+  it("marca «Semáforo» como la sección activa en /semaforo", () => {
+    mocks.pathname = "/semaforo"
+    render(<AppNavigation role="caficultor" />)
+
+    expect(screen.getByRole("link", { name: "Semáforo" })).toHaveAttribute("aria-current", "page")
+    expect(screen.getByRole("link", { name: "Inicio" })).not.toHaveAttribute("aria-current")
+    expect(screen.getByRole("link", { name: "Historial" })).not.toHaveAttribute("aria-current")
   })
 
   it("abre el menú con opciones de cuenta, suscripción y ayuda, y lo cierra con Escape", () => {
@@ -82,5 +112,15 @@ describe("AppNavigation", () => {
       expect(mocks.replace).toHaveBeenCalledWith("/login")
       expect(mocks.refresh).toHaveBeenCalledOnce()
     })
+    expect(screen.getByRole("button", { name: "Cerrar sesión" })).toBeEnabled()
+  })
+
+  it("permite volver a intentar si falla el cierre de sesión", async () => {
+    mocks.signOut.mockResolvedValueOnce({ error: new Error("offline") })
+    render(<AppNavigation role="caficultor" />)
+    fireEvent.click(screen.getByRole("button", { name: "Abrir menú de usuario" }))
+    fireEvent.click(screen.getByRole("button", { name: "Cerrar sesión" }))
+    expect(await screen.findByRole("alert")).toHaveTextContent("No se pudo cerrar la sesión")
+    expect(screen.getByRole("button", { name: "Cerrar sesión" })).toBeEnabled()
   })
 })

@@ -22,6 +22,12 @@ function submit(mode: "login" | "register" = "login") {
 }
 
 describe("acceso desde la portada", () => {
+  it.each(["login", "register"] as const)("muestra los accesos sociales como no disponibles en %s", (mode) => {
+    render(<AuthForm mode={mode} />)
+    expect(screen.getByRole("button", { name: "Continuar con Google" })).toBeDisabled()
+    expect(screen.getByRole("button", { name: "Continuar con Facebook" })).toBeDisabled()
+    expect(screen.getByText(/aún no está disponible/)).toBeInTheDocument()
+  })
   it("conserva el ingreso real y la redirección al historial solicitado", async () => {
     window.history.replaceState({}, "", "/login?next=%2Fhistorial")
     render(<AuthForm mode="login" />)

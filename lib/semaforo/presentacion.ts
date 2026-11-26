@@ -61,6 +61,32 @@ export const TEXTOS_SEMAFORO = {
   reintentar: "Volver a cargar",
 } as const
 
+// Cuánto hace que se calculó el dato (riesgo_diario.calculado_en). Solo se muestra con dato vencido.
+// Mismo criterio de textos: sin «probabilidad», «diagnóstico» ni «hoy».
+export const TEXTOS_ANTIGUEDAD = {
+  menosDeUnaHora: "Calculado hace menos de 1 hora",
+  horas: (n: number) => (n === 1 ? "Calculado hace 1 hora" : `Calculado hace ${n} horas`),
+  dias: (n: number) => (n === 1 ? "Calculado hace 1 día" : `Calculado hace ${n} días`),
+} as const
+
+const FECHA_HORA_ISO = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/
+const MS_POR_HORA = 3_600_000
+// Desde 48 horas se cuenta en días (por eso el mínimo en días es 2).
+const HORAS_HASTA_DIAS = 48
+
+// Pura: recibe la hora actual. Devuelve `null` si el valor falta, no es una fecha-hora válida o es
+// futuro (reloj desfasado): en ese caso la pantalla no muestra la línea de antigüedad.
+export function antiguedadDelDato(calculadoEn: string | null | undefined, ahora: Date): string | null {
+  if (typeof calculadoEn !== "string" || !FECHA_HORA_ISO.test(calculadoEn)) return null
+  const transcurrido = ahora.getTime() - Date.parse(calculadoEn)
+  if (!Number.isFinite(transcurrido) || transcurrido < 0) return null
+
+  const horas = Math.floor(transcurrido / MS_POR_HORA)
+  if (horas < 1) return TEXTOS_ANTIGUEDAD.menosDeUnaHora
+  if (horas < HORAS_HASTA_DIAS) return TEXTOS_ANTIGUEDAD.horas(horas)
+  return TEXTOS_ANTIGUEDAD.dias(Math.floor(horas / 24))
+}
+
 // Textos del selector de zona. Mismo criterio: un solo lugar, sin «probabilidad» ni «diagnóstico».
 export const TEXTOS_ZONA = {
   titulo: "Elige tu zona",
@@ -73,6 +99,22 @@ export const TEXTOS_ZONA = {
   errorGuardar: "No pudimos guardar tu zona. Vuelve a intentar en unos minutos.",
   errorSesion: "Tu sesión terminó. Vuelve a iniciar sesión.",
   errorZona: "Esa zona ya no está disponible. Elige otra.",
+} as const
+
+// Textos del aviso del inicio. Solo lo nuevo: el nivel, el icono y el «qué hacer» salen de
+// NIVELES_PRESENTACION, y la nota de estimación, la del dato de ayer y el título accesible
+// de TEXTOS_SEMAFORO. Sin «probabilidad» ni «diagnóstico»; «hoy» solo aparece en la nota de ayer.
+export const TEXTOS_AVISO = {
+  franjaTitulo: (etiquetaNivel: string) => `Semáforo de tu zona: ${etiquetaNivel}`,
+  etiquetaBloque: (zona: string) => `SEMÁFORO DE TU ZONA · ${zona}`,
+  verSemaforo: "Ver semáforo",
+  verSemaforoCompleto: "Ver semáforo completo",
+  cerrar: "Cerrar aviso",
+  cerradoTitulo: "Semáforo de tu zona",
+  invitacionEtiqueta: "SEMÁFORO DE ROYA",
+  invitacionTitulo: "Elige tu zona para ver el semáforo",
+  invitacionDescripcion: "Elige la zona más cercana a tu finca y verás cómo está el clima para la roya.",
+  invitacionBoton: "Elegir mi zona",
 } as const
 
 export const CREDITO_CLIMA = {

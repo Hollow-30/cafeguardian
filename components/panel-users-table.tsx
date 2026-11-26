@@ -21,6 +21,11 @@ export function PanelUsersTable({ users }: { users: PanelUsuario[] }) {
   const [busyId, setBusyId] = useState<string | null>(null)
   const [message, setMessage] = useState("")
   const [error, setError] = useState("")
+  const [query, setQuery] = useState("")
+  const search = query.trim().toLocaleLowerCase("es")
+  const filteredUsers = users.filter((user) =>
+    `${user.full_name} ${user.email ?? ""} ${user.rol}`.toLocaleLowerCase("es").includes(search),
+  )
 
   async function runAction(
     profileId: string,
@@ -62,6 +67,22 @@ export function PanelUsersTable({ users }: { users: PanelUsuario[] }) {
 
   return (
     <div className="flex flex-col gap-4">
+      <div>
+        <label htmlFor="panel-user-search" className="block text-sm font-semibold text-coffee-950">
+          Buscar usuarios
+        </label>
+        <input
+          id="panel-user-search"
+          type="search"
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder="Nombre, correo o rol"
+          className="input mt-2 max-w-md"
+        />
+        <p aria-live="polite" className="mt-3 text-sm text-slate-600">
+          {filteredUsers.length} de {users.length} usuarios
+        </p>
+      </div>
       {message && (
         <p role="status" className="rounded-xl border border-coffee-200 bg-coffee-50 p-3 text-sm text-coffee-950">
           {message}
@@ -72,87 +93,93 @@ export function PanelUsersTable({ users }: { users: PanelUsuario[] }) {
           {error}
         </p>
       )}
-      <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white">
-        <table className="min-w-full text-left text-sm">
-          <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-[0.12em] text-slate-500">
-            <tr>
-              <th className="px-4 py-3 font-semibold">Usuario</th>
-              <th className="px-4 py-3 font-semibold">Rol</th>
-              <th className="px-4 py-3 font-semibold">Plan</th>
-              <th className="px-4 py-3 font-semibold">Estado</th>
-              <th className="px-4 py-3 font-semibold">Vence</th>
-              <th className="px-4 py-3 font-semibold">Fotos</th>
-              <th className="px-4 py-3 font-semibold">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {users.map((user) => {
-              const busy = busyId === user.id
-              const canManage = user.rol === "caficultor"
-              const isActive = user.suscripcion_estado === "activa"
-              return (
-                <tr key={user.id} className="border-b border-slate-100 last:border-0">
-                  <td className="px-4 py-3">
-                    <p className="font-semibold text-coffee-950">{user.full_name}</p>
-                    <p className="text-xs text-slate-500">{user.email ?? "Sin correo"}</p>
-                  </td>
-                  <td className="px-4 py-3 capitalize text-slate-700">{user.rol}</td>
-                  <td className="px-4 py-3 text-slate-700">{planLabel(user)}</td>
-                  <td className="px-4 py-3 capitalize text-slate-700">{estadoLabel(user)}</td>
-                  <td className="px-4 py-3 text-slate-700">
-                    {user.termina_en
-                      ? new Date(user.termina_en + "T00:00:00").toLocaleDateString("es-PE", {
-                          dateStyle: "medium",
-                        })
-                      : "—"}
-                  </td>
-                  <td className="px-4 py-3 font-semibold text-coffee-950">{user.fotos_count}</td>
-                  <td className="px-4 py-3">
-                    {canManage ? (
-                      <div className="flex flex-wrap gap-2">
-                        <button
-                          type="button"
-                          disabled={busy}
-                          className="rounded-lg bg-coffee-800 px-3 py-2 text-xs font-semibold text-white hover:bg-coffee-900 disabled:opacity-60"
-                          onClick={() => void runAction(user.id, "activar", "premium_mensual")}
-                        >
-                          {busy ? "…" : "Premium 30d"}
-                        </button>
-                        <button
-                          type="button"
-                          disabled={busy}
-                          className="rounded-lg border border-coffee-300 px-3 py-2 text-xs font-semibold text-coffee-900 hover:bg-coffee-50 disabled:opacity-60"
-                          onClick={() => void runAction(user.id, "activar", "basico_anual")}
-                        >
-                          Premium anual
-                        </button>
-                        <button
-                          type="button"
-                          disabled={busy}
-                          className="rounded-lg border border-coffee-300 px-3 py-2 text-xs font-semibold text-coffee-900 hover:bg-coffee-50 disabled:opacity-60"
-                          onClick={() => void runAction(user.id, "activar", "prueba_30")}
-                        >
-                          Trial 30d
-                        </button>
-                        <button
-                          type="button"
-                          disabled={busy || !isActive}
-                          className="rounded-lg border border-red-300 px-3 py-2 text-xs font-semibold text-red-800 hover:bg-red-50 disabled:opacity-60"
-                          onClick={() => void runAction(user.id, "vencer")}
-                        >
-                          Vencer
-                        </button>
-                      </div>
-                    ) : (
-                      <span className="text-xs text-slate-400">—</span>
-                    )}
-                  </td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
-      </div>
+      {filteredUsers.length === 0 ? (
+        <p className="rounded-2xl border border-dashed border-coffee-200 bg-white p-8 text-center text-sm text-slate-600">
+          No encontramos usuarios con esa búsqueda.
+        </p>
+      ) : (
+        <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white">
+          <table className="min-w-full text-left text-sm">
+            <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-[0.12em] text-slate-500">
+              <tr>
+                <th className="px-4 py-3 font-semibold">Usuario</th>
+                <th className="px-4 py-3 font-semibold">Rol</th>
+                <th className="px-4 py-3 font-semibold">Plan</th>
+                <th className="px-4 py-3 font-semibold">Estado</th>
+                <th className="px-4 py-3 font-semibold">Vence</th>
+                <th className="px-4 py-3 font-semibold">Fotos</th>
+                <th className="px-4 py-3 font-semibold">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredUsers.map((user) => {
+                const busy = busyId === user.id
+                const canManage = user.rol === "caficultor"
+                const isActive = user.suscripcion_estado === "activa"
+                return (
+                  <tr key={user.id} className="border-b border-slate-100 last:border-0">
+                    <td className="px-4 py-3">
+                      <p className="font-semibold text-coffee-950">{user.full_name}</p>
+                      <p className="text-xs text-slate-500">{user.email ?? "Sin correo"}</p>
+                    </td>
+                    <td className="px-4 py-3 capitalize text-slate-700">{user.rol}</td>
+                    <td className="px-4 py-3 text-slate-700">{planLabel(user)}</td>
+                    <td className="px-4 py-3 capitalize text-slate-700">{estadoLabel(user)}</td>
+                    <td className="px-4 py-3 text-slate-700">
+                      {user.termina_en
+                        ? new Date(user.termina_en + "T00:00:00").toLocaleDateString("es-PE", {
+                            dateStyle: "medium",
+                          })
+                        : "—"}
+                    </td>
+                    <td className="px-4 py-3 font-semibold text-coffee-950">{user.fotos_count}</td>
+                    <td className="px-4 py-3">
+                      {canManage ? (
+                        <div className="flex flex-wrap gap-2">
+                          <button
+                            type="button"
+                            disabled={busy}
+                            className="rounded-lg bg-coffee-800 px-3 py-2 text-xs font-semibold text-white hover:bg-coffee-900 disabled:opacity-60"
+                            onClick={() => void runAction(user.id, "activar", "premium_mensual")}
+                          >
+                            {busy ? "…" : "Premium 30d"}
+                          </button>
+                          <button
+                            type="button"
+                            disabled={busy}
+                            className="rounded-lg border border-coffee-300 px-3 py-2 text-xs font-semibold text-coffee-900 hover:bg-coffee-50 disabled:opacity-60"
+                            onClick={() => void runAction(user.id, "activar", "basico_anual")}
+                          >
+                            Premium anual
+                          </button>
+                          <button
+                            type="button"
+                            disabled={busy}
+                            className="rounded-lg border border-coffee-300 px-3 py-2 text-xs font-semibold text-coffee-900 hover:bg-coffee-50 disabled:opacity-60"
+                            onClick={() => void runAction(user.id, "activar", "prueba_30")}
+                          >
+                            Trial 30d
+                          </button>
+                          <button
+                            type="button"
+                            disabled={busy || !isActive}
+                            className="rounded-lg border border-red-300 px-3 py-2 text-xs font-semibold text-red-800 hover:bg-red-50 disabled:opacity-60"
+                            onClick={() => void runAction(user.id, "vencer")}
+                          >
+                            Vencer
+                          </button>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-slate-400">—</span>
+                      )}
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   )
 }

@@ -14,6 +14,8 @@ export interface RiesgoLeido {
   /** Frase de lib/risk; se muestra tal cual. */
   motivo: string
   detalle: Record<string, unknown> | null
+  /** Cuándo se calculó (riesgo_diario.calculado_en, texto ISO). Opcional: sin él no se muestra la antigüedad. */
+  calculadoEn?: string | null
 }
 
 /** Resultado de leer la base para un usuario. `error` = no se pudo leer. */

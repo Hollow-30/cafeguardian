@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react"
 import { ChevronRight, Leaf } from "lucide-react"
 import { diagnosisCopy, getDiagnosisOrigin, type DiagnosisKey } from "@/content/diagnosis"
 import { filterDiagnoses, historyCopy, paginateDiagnoses, resultFilters, sortDiagnoses } from "@/content/history"
+import { formatConfidence } from "@/lib/diagnosis/presentation"
 import { fetchFotosHistorial } from "@/lib/fotos/history-client"
 import {
   localDiagnosisToEntry,
@@ -92,7 +93,7 @@ export function HistoryCard({ entry }: { entry: HistoryEntry }) {
         </div>
         <p className="mt-1 text-sm font-semibold text-slate-700">{getDiagnosisOrigin(entry.isDemo)}</p>
         <p className="mt-1 text-sm text-slate-600">{new Date(entry.createdAt).toLocaleDateString("es-PE", { dateStyle: "medium" })}</p>
-        <p className="mt-1 text-sm font-semibold text-slate-700">Confianza: {entry.confidence}%</p>
+        <p className="mt-1 text-sm font-semibold text-slate-700">Confianza: {formatConfidence(entry.confidence)}%</p>
         {entry.lote ? <p className="mt-1 truncate text-sm text-slate-600">{entry.lote}</p> : null}
       </div>
       <ChevronRight className="shrink-0 text-coffee-700" aria-hidden="true" />

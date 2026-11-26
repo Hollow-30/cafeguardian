@@ -85,6 +85,14 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
             {message && <p role="alert" className="rounded-xl border border-coffee-200 bg-coffee-50 p-4 text-sm leading-6">{message}</p>}
             <button disabled={loading} type="submit" className="cg-button mt-1 w-full disabled:cursor-wait disabled:opacity-70">{loading && <Loader2 className="animate-spin" size={18} aria-hidden="true" />}{text.submit}{!loading && <ArrowRight size={18} aria-hidden="true" />}</button>
           </form>
+          <div className="mt-7 border-t border-coffee-100 pt-6" aria-labelledby="social-access-title">
+            <h2 id="social-access-title" className="text-sm font-semibold">Otras formas de acceso</h2>
+            <p id="social-access-status" className="mt-1 text-sm leading-6 text-coffee-700">El acceso con Google y Facebook aún no está disponible. Por ahora, utiliza tu correo y contraseña.</p>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              <button type="button" disabled aria-describedby="social-access-status" className="min-h-12 rounded-xl border border-coffee-200 px-4 text-sm font-semibold text-coffee-700 opacity-60">Continuar con Google</button>
+              <button type="button" disabled aria-describedby="social-access-status" className="min-h-12 rounded-xl border border-coffee-200 px-4 text-sm font-semibold text-coffee-700 opacity-60">Continuar con Facebook</button>
+            </div>
+          </div>
           <p className="mt-6 text-center text-sm leading-7 text-coffee-700">{text.switchPrompt}{" "}<Link href={isRegister ? "/login" : "/registro"} className="inline-flex min-h-12 items-center font-semibold text-coffee-900 underline underline-offset-4">{text.switchLabel}</Link></p>
         </div>
       </section>

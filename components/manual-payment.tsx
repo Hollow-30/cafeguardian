@@ -23,10 +23,12 @@ function statusLabel(status: string) {
 
 type Props = {
   initialMethod?: "yape" | "transfer"
+  /** Solo historial (p. ej. /mis-pagos), sin formulario de envío. */
+  history?: boolean
 }
 
 /** Solo Yape/transferencia. Culqi abre desde /planes con el SDK. */
-export function ManualPayment({ initialMethod = "yape" }: Props) {
+export function ManualPayment({ initialMethod = "yape", history = false }: Props) {
   const [step, setStep] = useState(0)
   const [method, setMethod] = useState<"yape" | "transfer">(initialMethod)
   const [file, setFile] = useState<File | null>(null)
@@ -112,13 +114,13 @@ export function ManualPayment({ initialMethod = "yape" }: Props) {
     <main className="min-h-screen bg-white px-4 py-8 text-coffee-950 sm:px-6">
       <div className="mx-auto flex max-w-3xl flex-col gap-8">
         <header className="flex flex-col gap-2">
-          <Link href="/planes" className="w-fit rounded-lg py-2 text-sm font-bold text-coffee-800 underline underline-offset-4 hover:text-coffee-950">
-            Volver a planes
+          <Link href={history ? "/" : "/planes"} className="w-fit rounded-lg py-2 text-sm font-bold text-coffee-800 underline underline-offset-4 hover:text-coffee-950">
+            {history ? "Volver al inicio" : "Volver a planes"}
           </Link>
-          <h1 className="text-3xl font-bold">{copy.title}</h1>
-          <p className="text-sm text-slate-600">{copy.privacy}</p>
+          <h1 className="text-3xl font-bold">{history ? copy.myPayments : copy.title}</h1>
+          {!history && <p className="text-sm text-slate-600">{copy.privacy}</p>}
         </header>
-        {step < 2 && (
+        {!history && step < 2 && (
           <>
             <nav aria-label="Pasos" className="grid grid-cols-3 gap-2">
               {steps.map((label, index) => (
@@ -200,7 +202,7 @@ export function ManualPayment({ initialMethod = "yape" }: Props) {
           </>
         )}
 
-        {step === 2 && saved && (
+        {!history && step === 2 && saved && (
           <section className="flex flex-col gap-5 rounded-2xl border border-coffee-100 bg-coffee-50 p-5 shadow-sm">
             <CheckCircle2 className="text-coffee-700" aria-hidden="true" />
             <h2 className="text-2xl font-bold">Solicitud enviada</h2>
@@ -221,12 +223,14 @@ export function ManualPayment({ initialMethod = "yape" }: Props) {
             </Link>
           </section>
         )}
-        <section className="flex items-center gap-2 text-sm text-slate-600">
-          <ShieldCheck aria-hidden="true" />
-          {copy.privacy}
-        </section>
+        {!history && (
+          <section className="flex items-center gap-2 text-sm text-slate-600">
+            <ShieldCheck aria-hidden="true" />
+            {copy.privacy}
+          </section>
+        )}
         <section className="flex flex-col gap-3">
-          <h2 className="text-xl font-bold">{copy.myPayments}</h2>
+          <h2 className="text-xl font-bold">{history ? "Tus solicitudes" : copy.myPayments}</h2>
           {payments.length === 0 ? (
             <p className="text-slate-600">{copy.empty}</p>
           ) : (

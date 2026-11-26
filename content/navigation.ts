@@ -1,6 +1,6 @@
 export const navigationContent = {
   label: "Navegación principal",
-  links: [{ href: "/", label: "Inicio", icon: "home" }, { href: "/historial", label: "Historial", icon: "history" }, { href: "/panel", label: "Panel del equipo", icon: "team" }],
+  links: [{ href: "/", label: "Inicio", icon: "home" }, { href: "/semaforo", label: "Semáforo", icon: "semaforo" }, { href: "/historial", label: "Historial", icon: "history" }, { href: "/panel", label: "Panel del equipo", icon: "team" }],
   openMenu: "Abrir menú de usuario",
   account: "Mi cuenta",
   subscription: "Suscripción",

@@ -18,7 +18,7 @@ export default async function PanelPage() {
             </p>
             <h1 className="mt-2 text-3xl font-semibold">Panel del equipo</h1>
             <p className="mt-3 max-w-lg text-sm leading-6 text-coffee-100/75">
-              Resumen real de caficultores, planes y diagnósticos del día.
+              Resumen de caficultores, suscripciones y fotos registradas.
               Solo visible para el Superadministrador.
             </p>
           </div>
@@ -28,7 +28,7 @@ export default async function PanelPage() {
       <div className="mt-8 grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
         <section className="rounded-2xl border border-slate-200 bg-white p-6">
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
-            Caficultores
+            Caficultores registrados
           </p>
           <p className="mt-3 text-3xl font-semibold text-coffee-950">
             {resumen.caficultoresActivos}
@@ -52,7 +52,7 @@ export default async function PanelPage() {
         </section>
         <section className="rounded-2xl border border-slate-200 bg-white p-6">
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
-            Diagnósticos de hoy
+            Fotos registradas hoy (UTC)
           </p>
           <p className="mt-3 text-3xl font-semibold text-coffee-950">
             {resumen.diagnosticosHoy}

@@ -52,6 +52,7 @@ El estado sale de `estadoSemaforo({ lectura, ahora })` (función pura). "Hoy" es
 | `dato_de_hoy` | `fecha` es hoy o futura (reloj desfasado cuenta como hoy) | "Estimación del {fecha}" |
 | `dato_de_hoy` con `esDeAyer` | `fecha` es ayer y en Lima son menos de las 12:00 | Igual, con la nota "El de hoy se calcula alrededor de las 6 a. m." |
 | `dato_vencido` | `fecha` es ayer pasadas las 12:00, o anterior | "Dato del {fecha}" (con `diasAtraso`) |
+| `dato_vencido` con `calculado_en` válido | La fila trae `riesgo_diario.calculado_en` y no es una fecha futura | Debajo de «Dato del {fecha}»: "Calculado hace X horas" (de 1 a 47 h; "menos de 1 hora" si es menos), o "Calculado hace X días" (48 h o más, días enteros). Sin `calculado_en` válido no se muestra la línea |
 
 La tolerancia de ayer existe porque el cron corre a las 06:00 de Lima con ±59 minutos: sin ella, la pantalla diría "vencido" todas las madrugadas. La hora límite es la constante `HORA_LIMITE_DATO_DE_AYER` (12).
 
@@ -95,6 +96,6 @@ Si se hace el merge antes de la migración, `PATCH /api/perfil/zona` responde 50
 
 ## Qué falta
 
-- Enlazar la pantalla desde la navegación (`content/navigation.ts`) y el inicio (`components/farmer-home.tsx`): lo hace Frontend (Gabriel).
+- Ya existen el enlace «Semáforo» en el menú del caficultor y el aviso del semáforo en su inicio (ver `docs/semaforo/aviso-en-app.md`). El aviso es un recordatorio al abrir la app; el aviso push real es una mejora posterior.
 - Aviso de privacidad (CAFG-176) y «usar mi ubicación actual» con GPS (CAFG-177).
 - Comprobación visual en un teléfono real y validación de textos y colores.
