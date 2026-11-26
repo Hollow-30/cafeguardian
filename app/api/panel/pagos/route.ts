@@ -67,17 +67,7 @@ export async function POST(request: Request) {
   const estado: PagoEstadoDb = action === "aprobar" ? "aprobado" : "rechazado"
   const motivo = action === "rechazar" ? (body.motivo?.trim() || "Comprobante no válido") : null
 
-  if (action === "aprobar") {
-    try {
-      await activarPremiumPerfil(admin, pago.profile_id, "basico_anual")
-    } catch (error) {
-      return NextResponse.json(
-        { error: error instanceof Error ? error.message : "No se pudo activar Premium." },
-        { status: 500 },
-      )
-    }
-  }
-
+  // Primero marca el pago; si falla la activación, el admin puede reintentar.
   const { data: updated, error: updateError } = await admin
     .from("pagos")
     .update({
@@ -87,11 +77,29 @@ export async function POST(request: Request) {
       revisado_en: new Date().toISOString(),
     })
     .eq("id", pagoId)
+    .eq("estado", "en_revision")
     .select("id, referencia, monto, metodo, receipt_name, estado, motivo_rechazo, created_at")
-    .single()
+    .maybeSingle()
 
-  if (updateError || !updated) {
-    return NextResponse.json({ error: updateError?.message ?? "No se pudo actualizar el pago." }, { status: 500 })
+  if (updateError) {
+    return NextResponse.json({ error: updateError.message }, { status: 500 })
+  }
+  if (!updated) {
+    return NextResponse.json({ error: "Este pago ya fue revisado." }, { status: 409 })
+  }
+
+  if (action === "aprobar") {
+    try {
+      await activarPremiumPerfil(admin, pago.profile_id, "basico_anual")
+    } catch (error) {
+      return NextResponse.json(
+        {
+          item: rowToPagoPublico(updated as never),
+          error: error instanceof Error ? error.message : "Pago marcado, pero no se pudo activar Premium.",
+        },
+        { status: 502 },
+      )
+    }
   }
 
   return NextResponse.json({ item: rowToPagoPublico(updated as never) })
