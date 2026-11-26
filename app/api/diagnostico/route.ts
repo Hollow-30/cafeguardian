@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server"
+import { resolveRole } from "@/lib/auth/roles"
 import { getAuthUser } from "@/lib/auth/session"
 import { parseClassification } from "@/lib/diagnosis/contract"
 import { FOTO_ALLOWED_TYPES, FOTO_MAX_BYTES, type FotoAllowedType } from "@/lib/fotos/validation"
+import { buildPlanEstado } from "@/lib/plans/estado"
+import { ensurePruebaRegistro, expirePastDueSubscriptions } from "@/lib/plans/suscripciones"
+import { createAdminClient } from "@/lib/supabase/admin"
+import { createClient } from "@/lib/supabase/server"
 
 export const runtime = "nodejs"
 export const maxDuration = 40
@@ -60,6 +65,26 @@ export async function POST(request: Request) {
   })
   const user = await getAuthUser()
   if (!user?.id) return reply({ error: "No autenticado" }, 401)
+
+  try {
+    try {
+      const admin = createAdminClient()
+      await expirePastDueSubscriptions(admin)
+      if (resolveRole(user) === "caficultor") await ensurePruebaRegistro(admin, user.id)
+    } catch {
+      // Sin service role igual se aplica la cuota con el estado actual.
+    }
+    const supabase = await createClient()
+    const planEstado = await buildPlanEstado(supabase, user.id)
+    if (planEstado.status.plan === "free" && (planEstado.remaining ?? 0) <= 0) {
+      return reply({ error: "Has usado todas tus fotos gratuitas este mes." }, 403)
+    }
+  } catch (error) {
+    return reply(
+      { error: error instanceof Error ? error.message : "No se pudo verificar la cuota del plan." },
+      500,
+    )
+  }
 
   let config: ReturnType<typeof serviceConfig>
   try { config = serviceConfig() } catch { return reply({ error: "Servicio de diagnóstico no configurado." }, 503) }

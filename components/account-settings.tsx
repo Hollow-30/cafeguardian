@@ -1,15 +1,57 @@
 "use client"
 
-import { useState, type FormEvent } from "react"
+import { useEffect, useState, type FormEvent } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Camera, CheckCircle2, CreditCard, KeyRound, UserRound } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
+import type { PlanEstadoResponse } from "@/lib/plans/estado"
 
 type AccountSettingsProps = {
   email: string
   name: string
   avatarUrl: string
+}
+
+function planCopy(estado: PlanEstadoResponse | null) {
+  if (!estado) {
+    return {
+      title: "Cargando plan…",
+      badge: "…",
+      detail: "Consultando tu suscripción.",
+    }
+  }
+  if (estado.status.isTrial) {
+    const ends = estado.endsOn
+      ? new Date(estado.endsOn + "T00:00:00").toLocaleDateString("es-PE", { dateStyle: "medium" })
+      : null
+    return {
+      title: "Plan Prueba",
+      badge: `${estado.status.trialDaysRemaining} días`,
+      detail: ends
+        ? `Premium de prueba activo hasta el ${ends}. Fotos ilimitadas durante la prueba.`
+        : "Premium de prueba activo. Fotos ilimitadas durante la prueba.",
+    }
+  }
+  if (estado.status.premiumActive) {
+    const ends = estado.endsOn
+      ? new Date(estado.endsOn + "T00:00:00").toLocaleDateString("es-PE", { dateStyle: "medium" })
+      : null
+    return {
+      title: "Plan Premium",
+      badge: "Activo",
+      detail: ends
+        ? `Suscripción vigente hasta el ${ends}. Fotos ilimitadas.`
+        : "Suscripción Premium activa. Fotos ilimitadas.",
+    }
+  }
+  const used = estado.user.photosUsedThisMonth
+  const quota = estado.quota
+  return {
+    title: "Plan Gratis",
+    badge: "Base",
+    detail: `Acceso al semáforo de riesgo y ${used} de ${quota} fotos usadas este mes.`,
+  }
 }
 
 export function AccountSettings({ email: initialEmail, name: initialName, avatarUrl: initialAvatarUrl }: AccountSettingsProps) {
@@ -25,6 +67,25 @@ export function AccountSettings({ email: initialEmail, name: initialName, avatar
   const [passwordMessage, setPasswordMessage] = useState("")
   const [passwordError, setPasswordError] = useState("")
   const [passwordLoading, setPasswordLoading] = useState(false)
+  const [planEstado, setPlanEstado] = useState<PlanEstadoResponse | null>(null)
+
+  useEffect(() => {
+    let active = true
+    void (async () => {
+      try {
+        const response = await fetch("/api/planes/estado", { credentials: "same-origin", cache: "no-store" })
+        const body = (await response.json().catch(() => ({}))) as PlanEstadoResponse
+        if (active && response.ok) setPlanEstado(body)
+      } catch {
+        if (active) setPlanEstado(null)
+      }
+    })()
+    return () => {
+      active = false
+    }
+  }, [])
+
+  const plan = planCopy(planEstado)
 
   async function saveProfile(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -33,16 +94,34 @@ export function AccountSettings({ email: initialEmail, name: initialName, avatar
     setProfileError("")
 
     const emailChanged = email.trim() !== initialEmail
+    const fullName = name.trim()
     const { error } = await createClient().auth.updateUser({
       ...(emailChanged ? { email: email.trim() } : {}),
       data: {
-        full_name: name.trim(),
+        full_name: fullName,
         avatar_url: avatarUrl.trim() || null,
       },
     })
 
     if (error) {
       setProfileError(error.message)
+      setProfileLoading(false)
+      return
+    }
+
+    try {
+      const response = await fetch("/api/perfil", {
+        method: "PATCH",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ full_name: fullName }),
+      })
+      if (!response.ok) {
+        const body = (await response.json().catch(() => ({}))) as { error?: string }
+        throw new Error(body.error ?? "No se pudo sincronizar el nombre con el panel.")
+      }
+    } catch (cause) {
+      setProfileError(cause instanceof Error ? cause.message : "No se pudo sincronizar el nombre con el panel.")
       setProfileLoading(false)
       return
     }
@@ -148,11 +227,14 @@ export function AccountSettings({ email: initialEmail, name: initialName, avatar
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-center gap-3">
               <span className="flex size-10 items-center justify-center rounded-xl bg-coffee-50 text-coffee-800"><CreditCard className="size-5" aria-hidden="true" /></span>
-              <div><h2 id="subscription-title" className="font-semibold text-coffee-950">Tu suscripción</h2><p className="text-sm text-slate-500">Plan Gratuito</p></div>
+              <div>
+                <h2 id="subscription-title" className="font-semibold text-coffee-950">Tu suscripción</h2>
+                <p className="text-sm text-slate-500">{plan.title}</p>
+              </div>
             </div>
-            <span className="rounded-full bg-coffee-50 px-3 py-1 text-xs font-semibold text-coffee-800">Plan base</span>
+            <span className="rounded-full bg-coffee-50 px-3 py-1 text-xs font-semibold text-coffee-800">{plan.badge}</span>
           </div>
-          <p className="mt-4 text-sm leading-6 text-slate-600">Acceso al semáforo de riesgo de la zona y hasta 10 fotos al mes. La aplicación aún no sincroniza las solicitudes de pago con una suscripción activa en la cuenta.</p>
+          <p className="mt-4 text-sm leading-6 text-slate-600">{plan.detail}</p>
           <Link href="/planes" className="mt-5 inline-flex min-h-11 items-center justify-center rounded-xl bg-coffee-800 px-5 text-sm font-semibold text-white transition hover:bg-coffee-900">Gestionar suscripción</Link>
         </section>
       </div>

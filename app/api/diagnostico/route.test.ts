@@ -1,8 +1,18 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { getAuthUser } from "@/lib/auth/session"
+import { buildPlanEstado } from "@/lib/plans/estado"
 import { POST } from "./route"
 
 vi.mock("@/lib/auth/session", () => ({ getAuthUser: vi.fn() }))
+vi.mock("@/lib/auth/roles", () => ({ resolveRole: () => "caficultor" }))
+vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: () => ({}) }))
+vi.mock("@/lib/supabase/server", () => ({ createClient: async () => ({}) }))
+vi.mock("@/lib/plans/suscripciones", () => ({
+  expirePastDueSubscriptions: vi.fn(async () => 0),
+  ensurePruebaRegistro: vi.fn(async () => null),
+}))
+vi.mock("@/lib/plans/estado", () => ({ buildPlanEstado: vi.fn() }))
+
 const real = { label: "rust", confidence: 91.2, isDemo: false }
 const token = "test-only-service-token-32-characters"
 const request = (body: BodyInit = "image", headers = { "Content-Type": "image/jpeg" }) =>
@@ -10,6 +20,14 @@ const request = (body: BodyInit = "image", headers = { "Content-Type": "image/jp
 
 beforeEach(() => {
   vi.mocked(getAuthUser).mockResolvedValue({ id: "farmer" })
+  vi.mocked(buildPlanEstado).mockResolvedValue({
+    user: { plan: "premium", photosUsedThisMonth: 0 },
+    status: { plan: "premium", isTrial: true, trialDaysRemaining: 30, premiumActive: true },
+    remaining: null,
+    quota: 10,
+    planCodigo: "prueba_30",
+    endsOn: "2026-12-18",
+  })
   vi.stubEnv("INFERENCE_SERVICE_URL", "http://127.0.0.1:8000/predict")
   vi.stubEnv("INFERENCE_SERVICE_TOKEN", token)
 })
@@ -20,6 +38,20 @@ describe("diagnosis proxy", () => {
     vi.mocked(getAuthUser).mockResolvedValue(null)
     const spy = vi.spyOn(globalThis, "fetch")
     expect((await POST(request())).status).toBe(401)
+    expect(spy).not.toHaveBeenCalled()
+  })
+
+  it("blocks free users who already used their monthly quota", async () => {
+    vi.mocked(buildPlanEstado).mockResolvedValue({
+      user: { plan: "free", photosUsedThisMonth: 10 },
+      status: { plan: "free", isTrial: false, trialDaysRemaining: 0, premiumActive: false },
+      remaining: 0,
+      quota: 10,
+      planCodigo: null,
+      endsOn: null,
+    })
+    const spy = vi.spyOn(globalThis, "fetch")
+    expect((await POST(request())).status).toBe(403)
     expect(spy).not.toHaveBeenCalled()
   })
 

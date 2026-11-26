@@ -11,6 +11,7 @@ export type FotoHistoryInput = {
   semaforoDia: string | null
   semaforoFecha: string | null
   zonaEtiqueta?: string | null
+  nota?: string | null
 }
 
 export type FotoHistoryRecord = {
@@ -26,6 +27,7 @@ export type FotoHistoryRecord = {
   semaforo_dia: string | null
   semaforo_fecha: string | null
   zona_etiqueta?: string | null
+  nota?: string | null
 }
 
 export function buildFotoHistoryRecord(input: FotoHistoryInput): FotoHistoryRecord {
@@ -42,5 +44,6 @@ export function buildFotoHistoryRecord(input: FotoHistoryInput): FotoHistoryReco
     semaforo_dia: input.semaforoDia,
     semaforo_fecha: input.semaforoFecha,
     zona_etiqueta: input.zonaEtiqueta ?? null,
+    nota: input.nota ?? null,
   }
 }

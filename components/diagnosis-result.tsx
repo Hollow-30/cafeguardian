@@ -58,11 +58,24 @@ type DiagnosisResultProps = {
   label: DiagnosisKey
   confidence: number
   isDemo: boolean
+  consentimientoAnonimo: boolean
+  onConsentimientoChange: (value: boolean) => void
+  consentLabel: string
   onSave: () => void
   onAnother: () => void
 }
 
-export function DiagnosisResult({ src, label, confidence, isDemo, onSave, onAnother }: DiagnosisResultProps) {
+export function DiagnosisResult({
+  src,
+  label,
+  confidence,
+  isDemo,
+  consentimientoAnonimo,
+  onConsentimientoChange,
+  consentLabel,
+  onSave,
+  onAnother,
+}: DiagnosisResultProps) {
   const inconclusive = getResultPresentation(label, confidence).result === "inconclusive"
   return (
     <div className="flex flex-col gap-5">
@@ -74,6 +87,15 @@ export function DiagnosisResult({ src, label, confidence, isDemo, onSave, onAnot
       <ConfidenceBar confidence={confidence} />
       <p className="text-base leading-7 text-slate-700">{getDiagnosisExplanation(inconclusive ? "inconclusive" : label)}</p>
       <NextStepCard inconclusive={inconclusive} />
+      <label className="flex items-start gap-3 rounded-xl border border-coffee-100 bg-white p-4 text-sm leading-6 text-coffee-950">
+        <input
+          type="checkbox"
+          className="mt-1 size-4 rounded border-slate-300 text-coffee-800 focus:ring-coffee-700"
+          checked={consentimientoAnonimo}
+          onChange={(event) => onConsentimientoChange(event.target.checked)}
+        />
+        <span>{consentLabel}</span>
+      </label>
       <p className="text-center text-sm font-semibold text-coffee-950">{diagnosisCopy.disclaimer}</p>
       <div className="grid gap-3 sm:grid-cols-2">
         <Button type="button" size="lg" onClick={onSave} className="h-12 bg-coffee-800 hover:bg-coffee-900">

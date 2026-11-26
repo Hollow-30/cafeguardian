@@ -1,3 +1,5 @@
+import { todayLima } from "@/lib/plans/resolve"
+
 export type PanelResumen = {
   ambito: "equipo"
   titulo: string
@@ -34,17 +36,26 @@ function planFromSub(planes: SubRow["planes"]) {
   return { codigo: plan?.codigo ?? null, nombre: plan?.nombre ?? null }
 }
 
-/** Une perfiles, suscripción activa, correos y conteo de fotos. */
+function isVigente(sub: SubRow, today: string) {
+  return sub.estado === "activa" && sub.termina_en >= today
+}
+
+/** Une perfiles, suscripción vigente, correos y conteo de fotos. Vencidas = Gratis. */
 export function buildPanelUsuarios(input: {
   profiles: ProfileRow[]
   suscripciones: SubRow[]
   fotos: FotoRow[]
   emailsById: Record<string, string | null | undefined>
+  now?: Date
 }): PanelUsuario[] {
+  const today = todayLima(input.now ?? new Date())
   const subByProfile = new Map<string, SubRow>()
   for (const sub of input.suscripciones) {
+    if (!isVigente(sub, today)) continue
     const current = subByProfile.get(sub.profile_id)
-    if (!current || sub.estado === "activa") subByProfile.set(sub.profile_id, sub)
+    if (!current || sub.termina_en > current.termina_en) {
+      subByProfile.set(sub.profile_id, sub)
+    }
   }
 
   const fotosCount = new Map<string, number>()

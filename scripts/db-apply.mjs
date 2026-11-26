@@ -25,6 +25,13 @@ const files =
           "supabase/migrations/20261107_zonas_clima.sql",
           "supabase/migrations/20261111_clima_riesgo_cron.sql",
           "supabase/migrations/20261112_profiles_zona_clima.sql",
+          "supabase/migrations/20261117_prueba_30_al_registro.sql",
+          "supabase/migrations/20261124_pagos_manuales.sql",
+          "supabase/migrations/20261125_notas_y_planes.sql",
+          "supabase/migrations/20261125_pagos_culqi_simulado.sql",
+          "supabase/migrations/20261125_pagos_culqi.sql",
+          "supabase/migrations/20261125_planes_culqi.sql",
+          "supabase/migrations/20261126_pagos_culqi_charge_id.sql",
         ]
       : null
 

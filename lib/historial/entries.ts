@@ -40,6 +40,7 @@ export function remoteFotoToEntry(foto: FotoHistoryRecord): HistoryEntry {
     status: "synced",
     createdAt: foto.created_at,
     lote: foto.zona_etiqueta?.trim() || "",
+    note: foto.nota ?? undefined,
     imageUrl: `/api/fotos/${foto.id}/archivo`,
     source: "remote",
     remoteId: foto.id,

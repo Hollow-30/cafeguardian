@@ -1,25 +1,45 @@
 import type { PaymentRequest } from "./types"
+import { listUnsyncedPayments, markPaymentSynced } from "./paymentsRepo"
 
-const queue: PaymentRequest[] = []
+/** Compat: cola en memoria ya no es la fuente de verdad; se usa IndexedDB. */
+const memoryQueue: PaymentRequest[] = []
 
 export function enqueuePayment(payment: PaymentRequest): void {
-  queue.push(payment)
+  memoryQueue.push(payment)
 }
 
 export function pendingPayments(): PaymentRequest[] {
-  return [...queue]
+  return [...memoryQueue]
 }
 
-export async function retryOutbox(isOnline: boolean, send: (payment: PaymentRequest) => Promise<void>): Promise<number> {
+/**
+ * Reintenta pagos no sincronizados (IndexedDB + cola en memoria).
+ * `send` debe subir el comprobante al servidor.
+ */
+export async function retryOutbox(
+  isOnline: boolean,
+  send: (payment: PaymentRequest) => Promise<{ id: string; status: PaymentRequest["status"] }>,
+): Promise<number> {
   if (!isOnline) return 0
+
+  const fromDb = await listUnsyncedPayments().catch(() => [] as PaymentRequest[])
+  const byId = new Map<string, PaymentRequest>()
+  for (const item of [...fromDb, ...memoryQueue]) byId.set(item.id, item)
+
   let sent = 0
-  for (const payment of [...queue]) {
+  for (const payment of byId.values()) {
     try {
-      await send(payment)
-      queue.splice(queue.indexOf(payment), 1)
+      const remote = await send(payment)
+      try {
+        await markPaymentSynced(payment.id, remote.id, remote.status)
+      } catch {
+        // IndexedDB puede fallar en tests o sin storage; igual se retira de la cola en memoria.
+      }
+      const idx = memoryQueue.findIndex((item) => item.id === payment.id)
+      if (idx >= 0) memoryQueue.splice(idx, 1)
       sent += 1
     } catch {
-      // Se conserva la solicitud para el siguiente intento.
+      // Se conserva para el siguiente intento.
     }
   }
   return sent

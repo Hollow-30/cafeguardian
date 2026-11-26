@@ -6,6 +6,13 @@ export const paymentContent = {
   referenceLabel: "Código de referencia",
   yapeTitle: "Yape",
   transferTitle: "Transferencia bancaria",
+  cardTitle: "Tarjeta (Culqi)",
+  cardHint: "Checkout oficial Culqi.",
+  cardHintLive: "Pago seguro con el SDK oficial de Culqi.",
+  cardPay: "Pagar S/12",
+  cardSuccess: "Pago aceptado. Premium activado.",
+  culqiKeysMissing:
+    "Faltan llaves Culqi en .env (NEXT_PUBLIC_CULQI_PUBLIC_KEY y CULQI_SECRET_KEY).",
   yapeNumber: "[Por definir]",
   qrLabel: "QR de Yape: [Por definir]",
   bankData: "Banco: [Por definir] · Cuenta: [Por definir] · Titular: [Por definir]",
@@ -19,3 +26,4 @@ export const paymentContent = {
   empty: "Aún no tienes solicitudes de pago.",
   reason: "Motivo del rechazo",
 } as const
+

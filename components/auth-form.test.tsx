@@ -45,7 +45,15 @@ describe("acceso desde la portada", () => {
     render(<AuthForm mode="register" />)
     submit("register")
     expect(await screen.findByRole("alert")).toHaveTextContent("Revisa tu correo")
-    expect(mocks.signUp).toHaveBeenCalledWith(expect.objectContaining({ email: "ana@example.com", options: expect.objectContaining({ data: expect.objectContaining({ full_name: "Ana" }) }) }))
+    expect(mocks.signUp).toHaveBeenCalledWith(
+      expect.objectContaining({
+        email: "ana@example.com",
+        options: expect.objectContaining({
+          data: expect.objectContaining({ full_name: "Ana" }),
+          emailRedirectTo: expect.stringContaining("/auth/confirm?next="),
+        }),
+      }),
+    )
     expect(mocks.push).not.toHaveBeenCalled()
   })
   it("recupera el botón si no hay conexión", async () => {
@@ -61,4 +69,10 @@ describe("acceso desde la portada", () => {
     expect(screen.getByLabelText("Contraseña")).toHaveAttribute("type", "text")
     expect(screen.getByRole("link", { name: "Volver al inicio" })).toHaveAttribute("href", "/")
   })
+
+  it("ofrece recuperar la contraseña desde el ingreso", () => {
+    render(<AuthForm mode="login" />)
+    expect(screen.getByRole("link", { name: "¿Olvidaste tu contraseña?" })).toHaveAttribute("href", "/recuperar")
+  })
 })
+

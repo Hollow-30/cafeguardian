@@ -1,3 +1,4 @@
+import { expirePastDueSubscriptions } from "@/lib/plans/suscripciones"
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import {
@@ -30,6 +31,12 @@ async function loadEmailsById(ids: string[]) {
 }
 
 export async function listPanelUsuarios(): Promise<PanelUsuario[]> {
+  try {
+    await expirePastDueSubscriptions(createAdminClient())
+  } catch {
+    // El listado sigue; el estado efectivo se corrige en el próximo intento.
+  }
+
   const supabase = await createClient()
   const [{ data: profiles, error: profilesError }, { data: suscripciones, error: subsError }, { data: fotos, error: fotosError }] =
     await Promise.all([

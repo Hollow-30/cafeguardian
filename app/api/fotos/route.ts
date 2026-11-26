@@ -7,6 +7,9 @@ import { buildFotoObjectKey } from "@/lib/fotos/object-key"
 import { assertFotoUpload } from "@/lib/fotos/validation"
 import { getAuthUser } from "@/lib/auth/session"
 import { resolveRole, canAccessPanel } from "@/lib/auth/roles"
+import { buildPlanEstado } from "@/lib/plans/estado"
+import { ensurePruebaRegistro, expirePastDueSubscriptions } from "@/lib/plans/suscripciones"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { uploadFotoObject } from "@/lib/r2/client"
 import { createClient } from "@/lib/supabase/server"
 
@@ -32,7 +35,7 @@ export async function GET(request: Request) {
   let query = supabase
     .from("fotos")
     .select(
-      "id, profile_id, zona_id, storage_path, content_type, byte_size, created_at, resultado_etiqueta, confianza, semaforo_dia, semaforo_fecha, estado, zonas(etiqueta)",
+      "id, profile_id, zona_id, storage_path, content_type, byte_size, created_at, resultado_etiqueta, confianza, semaforo_dia, semaforo_fecha, nota, estado, zonas(etiqueta)",
     )
     .order("created_at", { ascending: false })
 
@@ -62,6 +65,7 @@ export async function GET(request: Request) {
       semaforoDia: row.semaforo_dia,
       semaforoFecha: row.semaforo_fecha,
       zonaEtiqueta: zona?.etiqueta ?? null,
+      nota: (row as { nota?: string | null }).nota ?? null,
     })
   })
 
@@ -102,6 +106,32 @@ export async function POST(request: Request) {
   }
 
   const supabase = await createClient()
+
+  try {
+    try {
+      const admin = createAdminClient()
+      await expirePastDueSubscriptions(admin)
+      if (resolveRole(user) === "caficultor") {
+        await ensurePruebaRegistro(admin, user.id)
+      }
+    } catch {
+      // Sin service role igual se aplica la cuota con el estado actual.
+    }
+
+    const planEstado = await buildPlanEstado(supabase, user.id)
+    if (planEstado.status.plan === "free" && (planEstado.remaining ?? 0) <= 0) {
+      return NextResponse.json(
+        { error: "Has usado todas tus fotos gratuitas este mes." },
+        { status: 403 },
+      )
+    }
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "No se pudo verificar la cuota del plan." },
+      { status: 500 },
+    )
+  }
+
   let zona: { id: string; profile_id: string; etiqueta: string } | null = null
 
   if (zonaId) {
@@ -157,7 +187,7 @@ export async function POST(request: Request) {
     .from("fotos")
     .insert({
       id: fotoId,
-      zona_id: zonaId,
+      zona_id: zona.id,
       profile_id: user.id,
       storage_path: storagePath,
       content_type: file.type,

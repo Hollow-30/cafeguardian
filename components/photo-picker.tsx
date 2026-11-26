@@ -5,11 +5,13 @@ import { useEffect, useRef, useState } from "react"
 import { ArrowLeft, Camera, CheckCircle2, Image as ImageIcon, LoaderCircle, RotateCcw, Upload } from "lucide-react"
 import { DiagnosisResult } from "@/components/diagnosis-result"
 import { Button } from "@/components/ui/button"
-import { photoCopy } from "@/content/photos"
+import { photoCopy, quotaWarningLabel } from "@/content/photos"
 import { classifyLeaf, type Classification } from "@/lib/diagnosis/classifyLeaf"
+import { fetchSemaforoSnapshot } from "@/lib/fotos/semaforo-snapshot"
 import { uploadFotoRegistro } from "@/lib/fotos/upload-client"
 import { compressImage } from "@/lib/image/compress"
 import { validatePhoto } from "@/lib/image/validate"
+import type { PlanEstadoResponse } from "@/lib/plans/estado"
 import { saveDiagnosis } from "@/lib/storage/diagnosesRepo"
 import { savePhoto } from "@/lib/storage/photosRepo"
 
@@ -97,9 +99,37 @@ export function PhotoPicker({ onBack, onSaved }: PhotoPickerProps) {
   const [error, setError] = useState("")
   const [classification, setClassification] = useState<Classification | null>(null)
   const [savedRemotely, setSavedRemotely] = useState(false)
+  const [consentimientoAnonimo, setConsentimientoAnonimo] = useState(false)
+  const [quotaHint, setQuotaHint] = useState("")
 
   useEffect(() => () => {
     if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current)
+  }, [])
+
+  useEffect(() => {
+    let active = true
+    void (async () => {
+      try {
+        const response = await fetch("/api/planes/estado", { credentials: "same-origin", cache: "no-store" })
+        const body = (await response.json().catch(() => ({}))) as PlanEstadoResponse
+        if (!active || !response.ok) return
+        if (body.status.plan === "free") {
+          const remaining = body.remaining ?? 0
+          setQuotaHint(
+            remaining <= 0
+              ? photoCopy.quotaExhausted
+              : quotaWarningLabel(remaining, body.quota),
+          )
+        } else {
+          setQuotaHint("")
+        }
+      } catch {
+        if (active) setQuotaHint("")
+      }
+    })()
+    return () => {
+      active = false
+    }
   }, [])
 
   function clearPreview() {
@@ -116,6 +146,7 @@ export function PhotoPicker({ onBack, onSaved }: PhotoPickerProps) {
     setPhotoId("")
     setClassification(null)
     setSavedRemotely(false)
+    setConsentimientoAnonimo(false)
     setError("")
     if (cameraRef.current) cameraRef.current.value = ""
     if (galleryRef.current) galleryRef.current.value = ""
@@ -140,9 +171,23 @@ export function PhotoPicker({ onBack, onSaved }: PhotoPickerProps) {
 
   async function usePhoto() {
     if (!file) return
+    if (quotaHint === photoCopy.quotaExhausted) {
+      setError(photoCopy.quotaExhausted)
+      return
+    }
     setStep("processing")
     try {
       const compressed = await compressImage(file)
+      if (typeof navigator !== "undefined" && !navigator.onLine) {
+        const saved = await savePhoto({ blob: compressed, lote })
+        setCompressedBlob(compressed)
+        setPhotoId(saved.id)
+        setSavedRemotely(false)
+        setStep("saved")
+        setError(photoCopy.offlineQueued)
+        onSaved?.(saved.id)
+        return
+      }
       const result = await classifyLeaf(compressed)
       const saved = await savePhoto({ blob: compressed, lote })
       setCompressedBlob(compressed)
@@ -152,7 +197,7 @@ export function PhotoPicker({ onBack, onSaved }: PhotoPickerProps) {
     } catch (cause) {
       console.error("No se pudo preparar o clasificar la foto.", cause)
       setStep("preview")
-      setError(photoCopy.errors.generic)
+      setError(cause instanceof Error ? cause.message : photoCopy.errors.generic)
     }
   }
 
@@ -160,11 +205,15 @@ export function PhotoPicker({ onBack, onSaved }: PhotoPickerProps) {
     if (!classification || !compressedBlob || !photoId) return
     setError("")
     try {
+      const semaforo = await fetchSemaforoSnapshot()
       const remote = await uploadFotoRegistro({
         blob: compressedBlob,
         lote: lote.trim(),
         resultadoEtiqueta: classification.label,
         confianza: classification.confidence,
+        consentimientoAnonimo,
+        semaforoDia: semaforo.semaforoDia,
+        semaforoFecha: semaforo.semaforoFecha,
       })
       await saveDiagnosis({
         photoId: remote.id,
@@ -174,6 +223,7 @@ export function PhotoPicker({ onBack, onSaved }: PhotoPickerProps) {
         isDemo: classification.isDemo,
         lote: lote.trim(),
         status: "synced",
+        consentimientoAnonimo,
       })
       setSavedRemotely(true)
       setStep("saved")
@@ -189,6 +239,7 @@ export function PhotoPicker({ onBack, onSaved }: PhotoPickerProps) {
           isDemo: classification.isDemo,
           lote: lote.trim(),
           status: "offline",
+          consentimientoAnonimo,
         })
         setSavedRemotely(false)
         setStep("saved")
@@ -221,6 +272,11 @@ export function PhotoPicker({ onBack, onSaved }: PhotoPickerProps) {
             {step === "result" ? "Revisa esta orientación antes de guardar el diagnóstico." : photoCopy.description}
           </p>
         </header>
+        {quotaHint && step !== "saved" && (
+          <p role="status" className="rounded-xl border border-coffee-200 bg-coffee-50 p-3 text-sm text-coffee-900">
+            {quotaHint}
+          </p>
+        )}
         {error && <div role="alert" className="rounded-xl border border-coffee-200 bg-coffee-50 p-4 text-sm text-coffee-800">{error}</div>}
         {step === "choose" && (
           <>
@@ -266,6 +322,9 @@ export function PhotoPicker({ onBack, onSaved }: PhotoPickerProps) {
             label={classification.label}
             confidence={classification.confidence}
             isDemo={classification.isDemo}
+            consentimientoAnonimo={consentimientoAnonimo}
+            onConsentimientoChange={setConsentimientoAnonimo}
+            consentLabel={photoCopy.consentLabel}
             onSave={saveCurrentDiagnosis}
             onAnother={reset}
           />

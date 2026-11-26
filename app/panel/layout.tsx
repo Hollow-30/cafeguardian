@@ -26,6 +26,9 @@ export default async function PanelLayout({ children }: { children: React.ReactN
             <Link href="/panel/equipo" className="inline-flex min-h-12 items-center hover:text-coffee-950">
               Usuarios
             </Link>
+            <Link href="/panel/pagos" className="hover:text-coffee-950">
+              Pagos
+            </Link>
           </nav>
         </div>
       </div>

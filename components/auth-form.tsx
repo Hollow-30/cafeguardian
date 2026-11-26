@@ -3,11 +3,12 @@
 import Image from "next/image"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { type FormEvent, useState } from "react"
+import { type FormEvent, useEffect, useState } from "react"
 import { ArrowLeft, ArrowRight, Eye, EyeOff, Loader2, Wifi } from "lucide-react"
 import { BrandMark } from "@/components/brand-mark"
 import { authContent as copy } from "@/content/auth"
 import { createClient } from "@/lib/supabase/client"
+import { authEmailRedirectTo } from "@/lib/auth/password-recovery"
 import { postLoginPathForRequest, resolveRole } from "@/lib/auth/roles"
 import { publicSignupUserMetadata } from "@/lib/auth/superadmin-provision"
 
@@ -24,6 +25,12 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
   const isRegister = mode === "register"
   const text = copy[mode]
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (params.get("error") === "confirmacion") setMessage(copy.confirmError)
+    else if (params.get("confirmed") === "1") setMessage(copy.confirmSuccess)
+  }, [])
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (loading) return
@@ -32,7 +39,14 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
     try {
       const supabase = createClient()
       const result = isRegister
-        ? await supabase.auth.signUp({ email, password, options: { data: publicSignupUserMetadata(name), emailRedirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL } })
+        ? await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+              data: publicSignupUserMetadata(name),
+              emailRedirectTo: authEmailRedirectTo(window.location.origin, "/"),
+            },
+          })
         : await supabase.auth.signInWithPassword({ email, password })
       if (result.error) {
         setMessage(result.error.message.includes("Invalid login") ? copy.invalidLogin : isRegister ? copy.registerError : copy.loginError)
@@ -61,6 +75,13 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
             {isRegister && <label className="flex flex-col gap-2 text-sm font-semibold">{copy.name}<input required autoComplete="name" value={name} onChange={(event) => setName(event.target.value)} placeholder={copy.namePlaceholder} className="input" /></label>}
             <label className="flex flex-col gap-2 text-sm font-semibold">{copy.email}<input required type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder={copy.emailPlaceholder} className="input" /></label>
             <div className="flex flex-col gap-2 text-sm font-semibold"><label htmlFor="auth-password">{copy.password}</label><div className="relative"><input required minLength={6} type={showPassword ? "text" : "password"} autoComplete={isRegister ? "new-password" : "current-password"} value={password} onChange={(event) => setPassword(event.target.value)} id="auth-password" placeholder={copy.passwordPlaceholder} className="input pr-14" /><button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-0 flex min-h-12 min-w-12 items-center justify-center rounded-xl text-coffee-700" aria-label={showPassword ? copy.hidePassword : copy.showPassword}>{showPassword ? <EyeOff size={18} aria-hidden="true" /> : <Eye size={18} aria-hidden="true" />}</button></div></div>
+            {!isRegister && (
+              <div className="-mt-2 flex justify-end">
+                <Link href="/recuperar" className="inline-flex min-h-10 items-center text-sm font-semibold text-coffee-900 underline underline-offset-4">
+                  {copy.forgotPassword}
+                </Link>
+              </div>
+            )}
             {message && <p role="alert" className="rounded-xl border border-coffee-200 bg-coffee-50 p-4 text-sm leading-6">{message}</p>}
             <button disabled={loading} type="submit" className="cg-button mt-1 w-full disabled:cursor-wait disabled:opacity-70">{loading && <Loader2 className="animate-spin" size={18} aria-hidden="true" />}{text.submit}{!loading && <ArrowRight size={18} aria-hidden="true" />}</button>
           </form>

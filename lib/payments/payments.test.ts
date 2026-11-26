@@ -25,8 +25,12 @@ describe("transiciones de estado", () => {
 describe("outbox", () => {
   it("reintenta y retira solicitudes enviadas", async () => {
     enqueuePayment(payment)
-    const sent = await retryOutbox(true, vi.fn().mockResolvedValue(undefined))
+    const sent = await retryOutbox(
+      true,
+      vi.fn().mockResolvedValue({ id: "remote-1", status: "under_review" }),
+    )
     expect(sent).toBe(1)
     expect(pendingPayments()).not.toContain(payment)
   })
 })
+
