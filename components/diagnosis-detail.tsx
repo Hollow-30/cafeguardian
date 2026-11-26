@@ -6,6 +6,7 @@ import { useEffect, useState } from "react"
 import { ArrowLeft, ArrowRight, Share2, Trash2, ZoomIn, ZoomOut } from "lucide-react"
 import { diagnosisCopy, getDiagnosisOrigin } from "@/content/diagnosis"
 import { historyCopy } from "@/content/history"
+import { formatConfidence } from "@/lib/diagnosis/presentation"
 import { deleteFotoHistorial, fetchFotoHistorial, fetchFotosHistorial } from "@/lib/fotos/history-client"
 import {
   localDiagnosisToEntry,
@@ -22,7 +23,7 @@ import {
 } from "@/lib/storage/diagnosesRepo"
 
 export function diagnosisSummary(entry: HistoryEntry) {
-  return `${getDiagnosisOrigin(entry.isDemo)}. Diagnóstico: ${diagnosisCopy.labels[entry.label]}. Confianza: ${entry.confidence}%. Fecha: ${new Date(entry.createdAt).toLocaleString("es-PE")}.`
+  return `${getDiagnosisOrigin(entry.isDemo)}. Diagnóstico: ${diagnosisCopy.labels[entry.label]}. Confianza: ${formatConfidence(entry.confidence)}%. Fecha: ${new Date(entry.createdAt).toLocaleString("es-PE")}.`
 }
 
 export async function shareDiagnosis(entry: HistoryEntry, imageUrl: string) {
@@ -191,7 +192,7 @@ export function DiagnosisDetail({ id }: { id: string }) {
         <section className="rounded-2xl border border-coffee-100 p-5">
           <h2 className="text-2xl font-bold text-coffee-950">{diagnosisCopy.labels[entry.label]}</h2>
           <p className="mt-2 text-sm font-semibold">{getDiagnosisOrigin(entry.isDemo)}</p>
-          <p className="mt-2 text-lg">Confianza: {entry.confidence}%</p>
+          <p className="mt-2 text-lg">Confianza: {formatConfidence(entry.confidence)}%</p>
           <p className="mt-1 text-sm text-slate-600">{date}</p>
           <p className="mt-1 text-sm text-slate-600">{entry.status === "offline" ? historyCopy.offline : historyCopy.synced}</p>
           {entry.lote && <p className="mt-2 text-sm">Lote o parcela: {entry.lote}</p>}

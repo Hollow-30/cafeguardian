@@ -5,6 +5,11 @@ import { createLeafClassifier } from "@/lib/diagnosis/classifyLeaf"
 import { createMockProvider, type MockScenario } from "@/lib/diagnosis/mock"
 
 describe("classification consumer compatibility", () => {
+  it("redondea la confianza mostrada y accesible a dos decimales", () => {
+    const html = renderToStaticMarkup(<DiagnosisResult label="rust" confidence={91.23789} isDemo={false} src="/leaf.jpg" onSave={() => {}} onAnother={() => {}} />)
+    expect(html).toContain("91.24%")
+    expect(html).toContain('aria-label="Confianza 91.24%"')
+  })
   it.each([
     ["healthy", "Sana"],
     ["rust", "Roya"],
