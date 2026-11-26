@@ -35,7 +35,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: true, action, vencidas: count })
     }
 
-    const planCodigo = body.plan_codigo === "prueba_30" ? "prueba_30" : "basico_anual"
+    const planCodigo =
+      body.plan_codigo === "prueba_30"
+        ? "prueba_30"
+        : body.plan_codigo === "premium_mensual"
+          ? "premium_mensual"
+          : "basico_anual"
     const created = await activarPremiumPerfil(admin, profileId, planCodigo)
     return NextResponse.json({ ok: true, action, ...created }, { status: 201 })
   } catch (error) {

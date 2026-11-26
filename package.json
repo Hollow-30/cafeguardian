@@ -10,7 +10,8 @@
     "test": "vitest run",
     "superadmin:create": "node --env-file=.env --experimental-strip-types scripts/create-superadmin.ts",
     "db:migrate": "node scripts/db-apply.mjs migrate",
-    "db:seed": "node scripts/db-apply.mjs seed"
+    "db:seed": "node scripts/db-apply.mjs seed",
+    "culqi:plans": "node scripts/culqi-create-plans.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1161.0",

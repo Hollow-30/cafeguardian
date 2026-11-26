@@ -187,7 +187,7 @@ export async function POST(request: Request) {
     .from("fotos")
     .insert({
       id: fotoId,
-      zona_id: zonaId,
+      zona_id: zona.id,
       profile_id: user.id,
       storage_path: storagePath,
       content_type: file.type,

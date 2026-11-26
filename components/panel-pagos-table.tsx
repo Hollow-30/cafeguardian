@@ -1,7 +1,8 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { useMemo, useState } from "react"
+import { isCulqiPagoMetodo, isManualPagoMetodo } from "@/lib/payments/server"
 
 export type PanelPagoItem = {
   id: string
@@ -9,17 +10,25 @@ export type PanelPagoItem = {
   fullName: string
   reference: string
   amount: number
-  method: "yape" | "transfer" | "culqi_simulado"
+  method: "yape" | "transfer" | "culqi" | "culqi_simulado"
   receiptName: string
   createdAt: string
   status: "sent" | "under_review" | "approved" | "rejected"
   rejectionReason?: string
+  culqiChargeId?: string
 }
 
 function statusLabel(status: PanelPagoItem["status"]) {
   if (status === "approved") return "Aprobado"
   if (status === "rejected") return "Rechazado"
   return "En revisión"
+}
+
+function methodLabel(method: PanelPagoItem["method"]) {
+  if (method === "culqi") return "Culqi"
+  if (method === "culqi_simulado") return "Culqi (sim)"
+  if (method === "transfer") return "Transferencia"
+  return "Yape"
 }
 
 function isImageName(name: string) {
@@ -32,6 +41,12 @@ export function PanelPagosTable({ items }: { items: PanelPagoItem[] }) {
   const [message, setMessage] = useState("")
   const [error, setError] = useState("")
   const [preview, setPreview] = useState<PanelPagoItem | null>(null)
+  const [tab, setTab] = useState<"manual" | "culqi">("manual")
+
+  const manualItems = useMemo(() => items.filter((item) => isManualPagoMetodo(item.method)), [items])
+  const culqiItems = useMemo(() => items.filter((item) => isCulqiPagoMetodo(item.method)), [items])
+  const visible = tab === "manual" ? manualItems : culqiItems
+  const pendingManual = manualItems.filter((item) => item.status === "under_review" || item.status === "sent")
 
   async function review(pagoId: string, action: "aprobar" | "rechazar") {
     setBusyId(pagoId)
@@ -50,7 +65,7 @@ export function PanelPagosTable({ items }: { items: PanelPagoItem[] }) {
       })
       const body = (await response.json().catch(() => ({}))) as { error?: string }
       if (!response.ok) throw new Error(body.error ?? "No se pudo revisar el pago.")
-      setMessage(action === "aprobar" ? "Pago aprobado y Premium activado." : "Pago rechazado.")
+      setMessage(action === "aprobar" ? "Pago aprobado y Premium anual activado." : "Pago rechazado.")
       setPreview(null)
       router.refresh()
     } catch (cause) {
@@ -60,16 +75,31 @@ export function PanelPagosTable({ items }: { items: PanelPagoItem[] }) {
     }
   }
 
-  if (items.length === 0) {
-    return (
-      <p className="rounded-2xl border border-dashed border-coffee-200 bg-white p-8 text-center text-sm text-slate-600">
-        No hay comprobantes registrados.
-      </p>
-    )
-  }
-
   return (
     <div className="flex flex-col gap-4">
+      <div className="flex flex-wrap gap-2">
+        <button
+          type="button"
+          aria-pressed={tab === "manual"}
+          onClick={() => setTab("manual")}
+          className={`min-h-10 rounded-xl border px-4 text-sm font-semibold ${
+            tab === "manual" ? "border-coffee-700 bg-coffee-50 text-coffee-950" : "border-slate-200 text-slate-600"
+          }`}
+        >
+          Manuales ({pendingManual.length} pendientes)
+        </button>
+        <button
+          type="button"
+          aria-pressed={tab === "culqi"}
+          onClick={() => setTab("culqi")}
+          className={`min-h-10 rounded-xl border px-4 text-sm font-semibold ${
+            tab === "culqi" ? "border-coffee-700 bg-coffee-50 text-coffee-950" : "border-slate-200 text-slate-600"
+          }`}
+        >
+          Culqi ({culqiItems.length})
+        </button>
+      </div>
+
       {message && (
         <p role="status" className="rounded-xl border border-coffee-200 bg-coffee-50 p-3 text-sm text-coffee-950">
           {message}
@@ -80,74 +110,86 @@ export function PanelPagosTable({ items }: { items: PanelPagoItem[] }) {
           {error}
         </p>
       )}
-      <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white">
-        <table className="min-w-full text-left text-sm">
-          <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-[0.12em] text-slate-500">
-            <tr>
-              <th className="px-4 py-3 font-semibold">Usuario</th>
-              <th className="px-4 py-3 font-semibold">Referencia</th>
-              <th className="px-4 py-3 font-semibold">Método</th>
-              <th className="px-4 py-3 font-semibold">Monto</th>
-              <th className="px-4 py-3 font-semibold">Estado</th>
-              <th className="px-4 py-3 font-semibold">Comprobante</th>
-              <th className="px-4 py-3 font-semibold">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {items.map((item) => {
-              const busy = busyId === item.id
-              const pending = item.status === "under_review" || item.status === "sent"
-              return (
-                <tr key={item.id} className="border-b border-slate-100 last:border-0">
-                  <td className="px-4 py-3">
-                    <p className="font-semibold text-coffee-950">{item.fullName}</p>
-                    <p className="text-xs text-slate-500">{item.receiptName}</p>
-                  </td>
-                  <td className="px-4 py-3 font-medium text-slate-700">{item.reference}</td>
-                  <td className="px-4 py-3 capitalize text-slate-700">
-                    {item.method === "culqi_simulado" ? "Culqi (sim)" : item.method}
-                  </td>
-                  <td className="px-4 py-3 text-slate-700">S/{item.amount}</td>
-                  <td className="px-4 py-3 text-slate-700">{statusLabel(item.status)}</td>
-                  <td className="px-4 py-3">
-                    <button
-                      type="button"
-                      className="rounded-lg border border-coffee-300 px-3 py-2 text-xs font-semibold text-coffee-900 hover:bg-coffee-50"
-                      onClick={() => setPreview(item)}
-                    >
-                      Ver
-                    </button>
-                  </td>
-                  <td className="px-4 py-3">
-                    {pending ? (
-                      <div className="flex flex-wrap gap-2">
+
+      {visible.length === 0 ? (
+        <p className="rounded-2xl border border-dashed border-coffee-200 bg-white p-8 text-center text-sm text-slate-600">
+          {tab === "manual" ? "No hay comprobantes Yape/transferencia." : "Aún no hay pagos Culqi."}
+        </p>
+      ) : (
+        <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white">
+          <table className="min-w-full text-left text-sm">
+            <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-[0.12em] text-slate-500">
+              <tr>
+                <th className="px-4 py-3 font-semibold">Usuario</th>
+                <th className="px-4 py-3 font-semibold">Referencia</th>
+                <th className="px-4 py-3 font-semibold">Método</th>
+                <th className="px-4 py-3 font-semibold">Monto</th>
+                <th className="px-4 py-3 font-semibold">Estado</th>
+                <th className="px-4 py-3 font-semibold">{tab === "culqi" ? "Cargo Culqi" : "Comprobante"}</th>
+                <th className="px-4 py-3 font-semibold">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {visible.map((item) => {
+                const busy = busyId === item.id
+                const canReview =
+                  isManualPagoMetodo(item.method) && (item.status === "under_review" || item.status === "sent")
+                return (
+                  <tr key={item.id} className="border-b border-slate-100 last:border-0">
+                    <td className="px-4 py-3">
+                      <p className="font-semibold text-coffee-950">{item.fullName}</p>
+                      <p className="text-xs text-slate-500">{item.receiptName}</p>
+                    </td>
+                    <td className="px-4 py-3 font-medium text-slate-700">{item.reference}</td>
+                    <td className="px-4 py-3 text-slate-700">{methodLabel(item.method)}</td>
+                    <td className="px-4 py-3 text-slate-700">S/{item.amount}</td>
+                    <td className="px-4 py-3 text-slate-700">{statusLabel(item.status)}</td>
+                    <td className="px-4 py-3">
+                      {isCulqiPagoMetodo(item.method) ? (
+                        <span className="font-mono text-xs text-slate-600">{item.culqiChargeId ?? "—"}</span>
+                      ) : (
                         <button
                           type="button"
-                          disabled={busy}
-                          className="rounded-lg bg-coffee-800 px-3 py-2 text-xs font-semibold text-white hover:bg-coffee-900 disabled:opacity-60"
-                          onClick={() => void review(item.id, "aprobar")}
+                          className="rounded-lg border border-coffee-300 px-3 py-2 text-xs font-semibold text-coffee-900 hover:bg-coffee-50"
+                          onClick={() => setPreview(item)}
                         >
-                          {busy ? "…" : "Aprobar"}
+                          Ver
                         </button>
-                        <button
-                          type="button"
-                          disabled={busy}
-                          className="rounded-lg border border-red-300 px-3 py-2 text-xs font-semibold text-red-800 hover:bg-red-50 disabled:opacity-60"
-                          onClick={() => void review(item.id, "rechazar")}
-                        >
-                          Rechazar
-                        </button>
-                      </div>
-                    ) : (
-                      <span className="text-xs text-slate-400">—</span>
-                    )}
-                  </td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
-      </div>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      {canReview ? (
+                        <div className="flex flex-wrap gap-2">
+                          <button
+                            type="button"
+                            disabled={busy}
+                            className="rounded-lg bg-coffee-800 px-3 py-2 text-xs font-semibold text-white hover:bg-coffee-900 disabled:opacity-60"
+                            onClick={() => void review(item.id, "aprobar")}
+                          >
+                            {busy ? "…" : "Aprobar"}
+                          </button>
+                          <button
+                            type="button"
+                            disabled={busy}
+                            className="rounded-lg border border-red-300 px-3 py-2 text-xs font-semibold text-red-800 hover:bg-red-50 disabled:opacity-60"
+                            onClick={() => void review(item.id, "rechazar")}
+                          >
+                            Rechazar
+                          </button>
+                        </div>
+                      ) : isCulqiPagoMetodo(item.method) ? (
+                        <span className="text-xs font-semibold text-coffee-700">Automático</span>
+                      ) : (
+                        <span className="text-xs text-slate-400">—</span>
+                      )}
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {preview && (
         <div
@@ -203,26 +245,27 @@ export function PanelPagosTable({ items }: { items: PanelPagoItem[] }) {
               >
                 Abrir en pestaña
               </a>
-              {(preview.status === "under_review" || preview.status === "sent") && (
-                <>
-                  <button
-                    type="button"
-                    disabled={busyId === preview.id}
-                    className="rounded-lg bg-coffee-800 px-4 py-2 text-sm font-semibold text-white hover:bg-coffee-900 disabled:opacity-60"
-                    onClick={() => void review(preview.id, "aprobar")}
-                  >
-                    Aprobar
-                  </button>
-                  <button
-                    type="button"
-                    disabled={busyId === preview.id}
-                    className="rounded-lg border border-red-300 px-4 py-2 text-sm font-semibold text-red-800 hover:bg-red-50 disabled:opacity-60"
-                    onClick={() => void review(preview.id, "rechazar")}
-                  >
-                    Rechazar
-                  </button>
-                </>
-              )}
+              {isManualPagoMetodo(preview.method) &&
+                (preview.status === "under_review" || preview.status === "sent") && (
+                  <>
+                    <button
+                      type="button"
+                      disabled={busyId === preview.id}
+                      className="rounded-lg bg-coffee-800 px-4 py-2 text-sm font-semibold text-white hover:bg-coffee-900 disabled:opacity-60"
+                      onClick={() => void review(preview.id, "aprobar")}
+                    >
+                      Aprobar
+                    </button>
+                    <button
+                      type="button"
+                      disabled={busyId === preview.id}
+                      className="rounded-lg border border-red-300 px-4 py-2 text-sm font-semibold text-red-800 hover:bg-red-50 disabled:opacity-60"
+                      onClick={() => void review(preview.id, "rechazar")}
+                    >
+                      Rechazar
+                    </button>
+                  </>
+                )}
             </div>
           </div>
         </div>

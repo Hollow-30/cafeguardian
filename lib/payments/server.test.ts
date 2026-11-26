@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest"
-import { buildPagoObjectKey, mapPagoEstadoToUi, rowToPagoPublico } from "./server"
+import {
+  buildPagoObjectKey,
+  isCulqiPagoMetodo,
+  isManualPagoMetodo,
+  mapPagoEstadoToUi,
+  rowToPagoPublico,
+} from "./server"
 
 describe("payments server helpers", () => {
   it("mapea estados de DB a UI", () => {
@@ -33,4 +39,28 @@ describe("payments server helpers", () => {
       status: "under_review",
     })
   })
+
+  it("reconoce metodo culqi real", () => {
+    expect(
+      rowToPagoPublico({
+        id: "2",
+        referencia: "CQ-1",
+        monto: 12,
+        metodo: "culqi",
+        receipt_name: "culqi-4242.txt",
+        estado: "aprobado",
+        motivo_rechazo: null,
+        created_at: "2026-11-25T12:00:00.000Z",
+        culqi_charge_id: "chr_test_1",
+      }),
+    ).toMatchObject({ method: "culqi", culqiChargeId: "chr_test_1" })
+  })
+
+  it("separa metodos manuales de Culqi", () => {
+    expect(isManualPagoMetodo("yape")).toBe(true)
+    expect(isManualPagoMetodo("culqi")).toBe(false)
+    expect(isCulqiPagoMetodo("culqi")).toBe(true)
+    expect(isCulqiPagoMetodo("transfer")).toBe(false)
+  })
 })
+

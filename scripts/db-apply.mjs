@@ -29,6 +29,9 @@ const files =
           "supabase/migrations/20261124_pagos_manuales.sql",
           "supabase/migrations/20261125_notas_y_planes.sql",
           "supabase/migrations/20261125_pagos_culqi_simulado.sql",
+          "supabase/migrations/20261125_pagos_culqi.sql",
+          "supabase/migrations/20261125_planes_culqi.sql",
+          "supabase/migrations/20261126_pagos_culqi_charge_id.sql",
         ]
       : null
 

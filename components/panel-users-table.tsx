@@ -22,7 +22,11 @@ export function PanelUsersTable({ users }: { users: PanelUsuario[] }) {
   const [message, setMessage] = useState("")
   const [error, setError] = useState("")
 
-  async function runAction(profileId: string, action: "activar" | "vencer", planCodigo?: "basico_anual" | "prueba_30") {
+  async function runAction(
+    profileId: string,
+    action: "activar" | "vencer",
+    planCodigo?: "basico_anual" | "prueba_30" | "premium_mensual",
+  ) {
     setBusyId(profileId)
     setMessage("")
     setError("")
@@ -110,9 +114,17 @@ export function PanelUsersTable({ users }: { users: PanelUsuario[] }) {
                           type="button"
                           disabled={busy}
                           className="rounded-lg bg-coffee-800 px-3 py-2 text-xs font-semibold text-white hover:bg-coffee-900 disabled:opacity-60"
+                          onClick={() => void runAction(user.id, "activar", "premium_mensual")}
+                        >
+                          {busy ? "…" : "Premium 30d"}
+                        </button>
+                        <button
+                          type="button"
+                          disabled={busy}
+                          className="rounded-lg border border-coffee-300 px-3 py-2 text-xs font-semibold text-coffee-900 hover:bg-coffee-50 disabled:opacity-60"
                           onClick={() => void runAction(user.id, "activar", "basico_anual")}
                         >
-                          {busy ? "…" : "Activar Premium"}
+                          Premium anual
                         </button>
                         <button
                           type="button"

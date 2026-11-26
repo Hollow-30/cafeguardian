@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from "react"
 import { CreditCard, Loader2 } from "lucide-react"
 import { paymentContent as copy } from "@/content/payments"
+import { createCulqiBrowserCheckout } from "@/lib/payments/culqi/browser"
 import { createCulqiSimulator } from "@/lib/payments/culqi/mock"
 import type { PagoPublico } from "@/lib/payments/server"
 
@@ -10,12 +11,17 @@ type Props = {
   onSuccess: (pago: PagoPublico, message: string) => void
 }
 
+function hasCulqiPublicKey() {
+  return Boolean(process.env.NEXT_PUBLIC_CULQI_PUBLIC_KEY?.trim())
+}
+
 export function CulqiSimulatorForm({ onSuccess }: Props) {
+  const live = hasCulqiPublicKey()
   const [email, setEmail] = useState("")
-  const [cardNumber, setCardNumber] = useState("4242 4242 4242 4242")
-  const [expMonth, setExpMonth] = useState("12")
-  const [expYear, setExpYear] = useState("30")
-  const [cvv, setCvv] = useState("123")
+  const [cardNumber, setCardNumber] = useState(live ? "" : "4242 4242 4242 4242")
+  const [expMonth, setExpMonth] = useState(live ? "" : "12")
+  const [expYear, setExpYear] = useState(live ? "" : "30")
+  const [cvv, setCvv] = useState(live ? "" : "123")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
 
@@ -25,7 +31,7 @@ export function CulqiSimulatorForm({ onSuccess }: Props) {
     setLoading(true)
     setError("")
     try {
-      const culqi = createCulqiSimulator()
+      const culqi = live ? createCulqiBrowserCheckout() : createCulqiSimulator()
       const token = await culqi.createToken({ cardNumber, expMonth, expYear, cvv, email })
       const response = await fetch("/api/pagos/culqi", {
         method: "POST",
@@ -43,11 +49,11 @@ export function CulqiSimulatorForm({ onSuccess }: Props) {
         charge?: { message?: string }
       }
       if (!response.ok || !body.item) {
-        throw new Error(body.error ?? "No se pudo completar el pago simulado.")
+        throw new Error(body.error ?? "No se pudo completar el pago con Culqi.")
       }
       onSuccess(body.item, body.charge?.message ?? copy.cardSuccess)
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Error en el simulador Culqi.")
+      setError(cause instanceof Error ? cause.message : "Error en el pago Culqi.")
     } finally {
       setLoading(false)
     }
@@ -61,7 +67,7 @@ export function CulqiSimulatorForm({ onSuccess }: Props) {
         </span>
         <div>
           <h2 className="text-lg font-bold text-coffee-950">{copy.cardTitle}</h2>
-          <p className="mt-1 text-sm text-slate-600">{copy.cardHint}</p>
+          <p className="mt-1 text-sm text-slate-600">{live ? copy.cardHintLive : copy.cardHint}</p>
         </div>
       </div>
       <label className="flex flex-col gap-2 text-sm font-semibold">

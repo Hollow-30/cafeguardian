@@ -2,17 +2,34 @@
 
 import Link from "next/link"
 import { useEffect, useState } from "react"
-import { Check, LockKeyhole, Sparkles } from "lucide-react"
-import { pricingContent, freePhotoQuota } from "@/content/pricing"
+import { Check, LockKeyhole, Minus, Sparkles } from "lucide-react"
+import { CulqiPayButton } from "@/components/culqi-pay-button"
+import { pricingContent, freePhotoQuota, type PlanFeatureValue } from "@/content/pricing"
 import { getPlanStatus, photosRemaining, type PlanUser } from "@/lib/plans"
 import type { PlanEstadoResponse } from "@/lib/plans/estado"
 
 const emptyUser: PlanUser = { plan: "free", photosUsedThisMonth: 0 }
 
+function featureText(value: PlanFeatureValue, detail?: string) {
+  if (detail) return detail
+  if (value === "included") return pricingContent.includedLabel
+  if (value === "excluded") return pricingContent.excludedLabel
+  return pricingContent.includedLabel
+}
+
+function FeatureMark({ value }: { value: PlanFeatureValue }) {
+  if (value === "excluded") {
+    return <Minus aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-coffee-400" />
+  }
+  return <Check aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-coffee-700" />
+}
+
 export function PricingPage() {
   const [estado, setEstado] = useState<PlanEstadoResponse | null>(null)
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(true)
+  const [paidMessage, setPaidMessage] = useState("")
+  const [reloadKey, setReloadKey] = useState(0)
 
   useEffect(() => {
     let active = true
@@ -36,7 +53,7 @@ export function PricingPage() {
     return () => {
       active = false
     }
-  }, [])
+  }, [reloadKey])
 
   const user = estado?.user ?? emptyUser
   const status = estado?.status ?? getPlanStatus(user)
@@ -116,12 +133,26 @@ export function PricingPage() {
 
         <section className="grid gap-5 md:grid-cols-2" aria-label="Planes disponibles">
           {pricingContent.plans.map((plan) => {
-            const current = status.plan === plan.id
+            const paidPremium = status.premiumActive && !status.isTrial
+            const onFree = status.plan === "free"
+            const highlight =
+              (plan.id === "free" && onFree) ||
+              (plan.id === "premium" && (status.isTrial || paidPremium))
+            const badge =
+              plan.id === "premium" && status.isTrial
+                ? pricingContent.trialBadge
+                : plan.id === "premium" && paidPremium
+                  ? pricingContent.currentPlan
+                  : plan.id === "free" && onFree
+                    ? pricingContent.currentPlan
+                    : null
+            const showCulqiCta = plan.id === "premium" && !paidPremium
+
             return (
               <article
                 key={plan.id}
                 className={`flex flex-col gap-5 rounded-2xl border-2 p-6 ${
-                  current ? "border-coffee-700 bg-coffee-50" : "border-coffee-900/15 bg-white"
+                  highlight ? "border-coffee-700 bg-coffee-50" : "border-coffee-900/15 bg-white"
                 }`}
               >
                 <div className="flex items-start justify-between gap-3">
@@ -129,9 +160,9 @@ export function PricingPage() {
                     <h2 className="text-2xl font-bold">{plan.name}</h2>
                     <p className="mt-1 text-sm text-coffee-950/70">{plan.cadence}</p>
                   </div>
-                  {current && (
+                  {badge && (
                     <span className="rounded-full bg-coffee-800 px-3 py-1 text-xs font-bold text-white">
-                      {pricingContent.currentPlan}
+                      {badge}
                     </span>
                   )}
                 </div>
@@ -140,22 +171,34 @@ export function PricingPage() {
                   <span className="ml-2 rounded-full bg-coffee-100 px-2 py-1 text-xs font-semibold">
                     {pricingContent.referentialLabel}
                   </span>
+                  <p className="mt-3 text-sm leading-6 text-coffee-950/75">{plan.summary}</p>
                 </div>
                 <ul className="flex flex-1 flex-col gap-3">
-                  {plan.features.map((feature) => (
-                    <li key={feature} className="flex gap-2 text-sm">
-                      <Check aria-hidden="true" className="mt-0.5 shrink-0 text-coffee-700" />
-                      <span>{feature}</span>
-                    </li>
-                  ))}
+                  {pricingContent.comparison.map((row) => {
+                    const value = plan.id === "free" ? row.free : row.premium
+                    const detail = plan.id === "free" ? row.freeDetail : row.premiumDetail
+                    return (
+                      <li
+                        key={row.label}
+                        className={`flex gap-2 text-sm ${value === "excluded" ? "text-coffee-950/45" : ""}`}
+                      >
+                        <FeatureMark value={value} />
+                        <span>
+                          <span className="font-medium">{row.label}</span>
+                          <span className="mt-0.5 block text-coffee-950/70">{featureText(value, detail)}</span>
+                        </span>
+                      </li>
+                    )
+                  })}
                 </ul>
-                {plan.id === "premium" && !current && (
-                  <Link
-                    href="/planes/pagar"
-                    className="inline-flex min-h-12 items-center justify-center rounded-xl bg-coffee-800 px-5 py-3 font-bold text-white hover:bg-coffee-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-coffee-700"
-                  >
-                    {pricingContent.nextStep}
-                  </Link>
+                {showCulqiCta && (
+                  <CulqiPayButton
+                    label={pricingContent.nextStep}
+                    onPaid={(message) => {
+                      setPaidMessage(message)
+                      setReloadKey((value) => value + 1)
+                    }}
+                  />
                 )}
                 {plan.id === "free" && (
                   <p className="flex items-center gap-2 text-sm text-coffee-950/70">
@@ -166,7 +209,23 @@ export function PricingPage() {
             )
           })}
         </section>
+        {paidMessage && (
+          <p
+            role="status"
+            className="rounded-xl border border-coffee-200 bg-coffee-50 p-4 text-center text-sm font-semibold text-coffee-950"
+          >
+            {paidMessage}
+          </p>
+        )}
         <p className="text-center text-sm text-coffee-950/70">{pricingContent.trial}</p>
+        <p className="text-center text-sm">
+          <Link
+            href="/planes/pagar?metodo=yape"
+            className="font-semibold text-coffee-800 underline underline-offset-4 hover:text-coffee-950"
+          >
+            {pricingContent.otherPayment}
+          </Link>
+        </p>
       </div>
     </main>
   )

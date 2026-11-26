@@ -9,7 +9,10 @@ import { retryOutbox } from "@/lib/payments/outbox"
 export function OfflineSync() {
   useEffect(() => {
     if ("serviceWorker" in navigator) {
-      void navigator.serviceWorker.register("/sw.js").catch(() => undefined)
+      void navigator.serviceWorker
+        .register("/sw.js")
+        .then((registration) => registration.update())
+        .catch(() => undefined)
     }
 
     const run = () => {

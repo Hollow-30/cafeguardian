@@ -59,12 +59,12 @@ export async function ensurePruebaRegistro(
 
 /**
  * Activa Premium: cierra activas previas y crea una nueva.
- * Por defecto usa el plan `basico_anual`; `prueba_30` sirve como trial de 30 días.
+ * Por defecto usa el plan `basico_anual`; `prueba_30` es trial; `premium_mensual` es Culqi S/12.
  */
 export async function activarPremiumPerfil(
   supabase: Db,
   profileId: string,
-  planCodigo: "basico_anual" | "prueba_30" = "basico_anual",
+  planCodigo: "basico_anual" | "prueba_30" | "premium_mensual" = "basico_anual",
   now: Date = new Date(),
 ): Promise<{ suscripcionId: string; termina_en: string; plan_codigo: string }> {
   const { data: plan, error: planError } = await supabase

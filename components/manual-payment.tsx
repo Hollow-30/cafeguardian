@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import { CheckCircle2, FileUp, ShieldCheck } from "lucide-react"
-import { CulqiSimulatorForm } from "@/components/culqi-simulator-form"
 import { paymentContent as copy } from "@/content/payments"
 import { compressImage } from "@/lib/image/compress"
 import { fetchMisPagos, sendPaymentToServer } from "@/lib/payments/api-client"
@@ -22,10 +21,14 @@ function statusLabel(status: string) {
   return "Enviado"
 }
 
-export function ManualPayment() {
-  const [channel, setChannel] = useState<"manual" | "culqi">("culqi")
+type Props = {
+  initialMethod?: "yape" | "transfer"
+}
+
+/** Solo Yape/transferencia. Culqi abre desde /planes con el SDK. */
+export function ManualPayment({ initialMethod = "yape" }: Props) {
   const [step, setStep] = useState(0)
-  const [method, setMethod] = useState<"yape" | "transfer">("yape")
+  const [method, setMethod] = useState<"yape" | "transfer">(initialMethod)
   const [file, setFile] = useState<File | null>(null)
   const [error, setError] = useState("")
   const [saving, setSaving] = useState(false)
@@ -115,49 +118,7 @@ export function ManualPayment() {
           <h1 className="text-3xl font-bold">{copy.title}</h1>
           <p className="text-sm text-slate-600">{copy.privacy}</p>
         </header>
-        <div className="grid grid-cols-2 gap-2">
-          <button
-            type="button"
-            aria-pressed={channel === "culqi"}
-            onClick={() => {
-              setChannel("culqi")
-              setStep(0)
-              setSuccessMessage("")
-            }}
-            className={`min-h-11 rounded-xl border px-3 text-sm font-bold ${
-              channel === "culqi" ? "border-coffee-700 bg-coffee-50 text-coffee-950" : "border-coffee-100 text-slate-600"
-            }`}
-          >
-            Tarjeta (Culqi sim)
-          </button>
-          <button
-            type="button"
-            aria-pressed={channel === "manual"}
-            onClick={() => {
-              setChannel("manual")
-              setStep(0)
-              setSuccessMessage("")
-            }}
-            className={`min-h-11 rounded-xl border px-3 text-sm font-bold ${
-              channel === "manual" ? "border-coffee-700 bg-coffee-50 text-coffee-950" : "border-coffee-100 text-slate-600"
-            }`}
-          >
-            Yape / Transferencia
-          </button>
-        </div>
-
-        {channel === "culqi" && step !== 2 && (
-          <CulqiSimulatorForm
-            onSuccess={(pago, message) => {
-              setSaved(pago)
-              setSuccessMessage(message)
-              setStep(2)
-              void refreshPayments()
-            }}
-          />
-        )}
-
-        {channel === "manual" && (
+        {step < 2 && (
           <>
             <nav aria-label="Pasos" className="grid grid-cols-3 gap-2">
               {steps.map((label, index) => (
@@ -242,9 +203,7 @@ export function ManualPayment() {
         {step === 2 && saved && (
           <section className="flex flex-col gap-5 rounded-2xl border border-coffee-100 bg-coffee-50 p-5 shadow-sm">
             <CheckCircle2 className="text-coffee-700" aria-hidden="true" />
-            <h2 className="text-2xl font-bold">
-              {channel === "culqi" ? "Pago simulado listo" : "Solicitud enviada"}
-            </h2>
+            <h2 className="text-2xl font-bold">Solicitud enviada</h2>
             <p>
               Código: <strong>{saved.reference}</strong>
             </p>
@@ -252,10 +211,7 @@ export function ManualPayment() {
               Estado: <strong>{statusLabel(saved.status)}</strong>
             </p>
             <p className="rounded-xl bg-white p-3">
-              {successMessage ||
-                (channel === "culqi"
-                  ? copy.cardSuccess
-                  : "Un administrador revisará tu comprobante y activará Premium si es válido.")}
+              {successMessage || "Un administrador revisará tu comprobante y activará Premium si es válido."}
             </p>
             <Link
               href="/mis-pagos"

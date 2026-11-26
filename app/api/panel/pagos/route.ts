@@ -2,7 +2,12 @@ import { NextResponse } from "next/server"
 import { authorizePanelAccess } from "@/lib/auth/panel-access"
 import { getAuthUser } from "@/lib/auth/session"
 import { activarPremiumPerfil } from "@/lib/plans/suscripciones"
-import { rowToPagoPublico, type PagoEstadoDb } from "@/lib/payments/server"
+import {
+  isCulqiPagoMetodo,
+  isManualPagoMetodo,
+  rowToPagoPublico,
+  type PagoEstadoDb,
+} from "@/lib/payments/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 
 export const runtime = "nodejs"
@@ -15,7 +20,7 @@ export async function GET() {
   const { data, error } = await admin
     .from("pagos")
     .select(
-      "id, profile_id, referencia, monto, metodo, receipt_name, estado, motivo_rechazo, created_at, profiles(full_name)",
+      "id, profile_id, referencia, monto, metodo, receipt_name, estado, motivo_rechazo, created_at, culqi_charge_id, profiles(full_name)",
     )
     .order("created_at", { ascending: false })
 
@@ -33,6 +38,10 @@ export async function GET() {
   return NextResponse.json({ items })
 }
 
+/**
+ * Solo Yape/transferencia en revisión.
+ * Culqi ya viene aprobado y con Premium activado desde /api/pagos/culqi.
+ */
 export async function POST(request: Request) {
   const reviewer = await getAuthUser()
   const access = authorizePanelAccess(reviewer)
@@ -54,12 +63,24 @@ export async function POST(request: Request) {
   const admin = createAdminClient()
   const { data: pago, error: loadError } = await admin
     .from("pagos")
-    .select("id, profile_id, estado")
+    .select("id, profile_id, estado, metodo")
     .eq("id", pagoId)
     .maybeSingle()
 
   if (loadError) return NextResponse.json({ error: loadError.message }, { status: 500 })
   if (!pago) return NextResponse.json({ error: "Pago no encontrado." }, { status: 404 })
+
+  if (isCulqiPagoMetodo(pago.metodo)) {
+    return NextResponse.json(
+      { error: "Los pagos Culqi se aprueban solos. No requieren revisión manual." },
+      { status: 409 },
+    )
+  }
+
+  if (!isManualPagoMetodo(pago.metodo)) {
+    return NextResponse.json({ error: "Método de pago no revisable." }, { status: 400 })
+  }
+
   if (pago.estado !== "en_revision") {
     return NextResponse.json({ error: "Este pago ya fue revisado." }, { status: 409 })
   }
@@ -67,7 +88,6 @@ export async function POST(request: Request) {
   const estado: PagoEstadoDb = action === "aprobar" ? "aprobado" : "rechazado"
   const motivo = action === "rechazar" ? (body.motivo?.trim() || "Comprobante no válido") : null
 
-  // Primero marca el pago; si falla la activación, el admin puede reintentar.
   const { data: updated, error: updateError } = await admin
     .from("pagos")
     .update({
@@ -78,7 +98,7 @@ export async function POST(request: Request) {
     })
     .eq("id", pagoId)
     .eq("estado", "en_revision")
-    .select("id, referencia, monto, metodo, receipt_name, estado, motivo_rechazo, created_at")
+    .select("id, referencia, monto, metodo, receipt_name, estado, motivo_rechazo, created_at, culqi_charge_id")
     .maybeSingle()
 
   if (updateError) {
@@ -90,6 +110,7 @@ export async function POST(request: Request) {
 
   if (action === "aprobar") {
     try {
+      // Manual = Premium anual (comprobante Yape/transferencia).
       await activarPremiumPerfil(admin, pago.profile_id, "basico_anual")
     } catch (error) {
       return NextResponse.json(
